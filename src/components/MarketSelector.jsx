@@ -95,13 +95,13 @@ export default function MarketSelector({ isOpen, onClose }) {
         top: position.y,
         width: '800px',
         maxHeight: '70vh',
-        backgroundColor: '#0a0a0a',
-        border: '1px solid #1a1a1a',
+        backgroundColor: 'var(--bg-subtle)',
+        border: '1px solid var(--border-color)',
         zIndex: 10000,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 30px 60px rgba(0,0,0,0.6)',
+        boxShadow: '0 30px 60px rgba(0,0,0,0.4)',
         borderRadius: '12px'
       }}
     >
@@ -112,15 +112,16 @@ export default function MarketSelector({ isOpen, onClose }) {
           display: flex;
           justify-content: center;
           align-items: center;
-          background: rgba(255,255,255,0.02);
+          background: var(--panel-border);
           cursor: grab;
-          border-bottom: 1px solid rgba(255,255,255,0.03);
+          border-bottom: 1px solid var(--panel-border);
         }
         .drag-handle-bar::after {
           content: '';
           width: 30px;
           height: 2px;
-          background: rgba(255,255,255,0.1);
+          background: var(--text-grey);
+          opacity: 0.2;
           border-radius: 1px;
         }
         .market-row {
@@ -128,7 +129,7 @@ export default function MarketSelector({ isOpen, onClose }) {
           grid-template-columns: 1.4fr 0.8fr 0.8fr 0.8fr 1fr 1fr 30px;
           padding: 10px 24px;
           align-items: center;
-          border-bottom: 1px solid rgba(255,255,255,0.03);
+          border-bottom: 1px solid var(--panel-border);
           cursor: pointer;
           transition: all 0.2s;
           position: relative;
@@ -145,7 +146,7 @@ export default function MarketSelector({ isOpen, onClose }) {
           transition: opacity 0.2s;
         }
         .market-row:hover {
-          background: rgba(255,255,255,0.02);
+          background: var(--gold-glow);
         }
         .market-row:hover::before {
           opacity: 1;
@@ -153,6 +154,7 @@ export default function MarketSelector({ isOpen, onClose }) {
         .asset-symbol {
           font-weight: 600;
           font-size: 12px;
+          color: var(--text-dark);
           transition: all 0.2s;
         }
         .market-row:hover .asset-symbol::before {
@@ -169,8 +171,8 @@ export default function MarketSelector({ isOpen, onClose }) {
           display: grid;
           grid-template-columns: 1.4fr 0.8fr 0.8fr 0.8fr 1fr 1fr 30px;
           padding: 8px 24px;
-          border-bottom: 1px solid #1a1a1a;
-          color: #666;
+          border-bottom: 1px solid var(--border-color);
+          color: var(--text-grey);
           font-size: 10px;
           font-weight: 600;
           text-transform: uppercase;
@@ -178,28 +180,32 @@ export default function MarketSelector({ isOpen, onClose }) {
         .search-container {
           display: flex;
           align-items: center;
-          padding: 14px 16px;
+          padding: 14px 24px;
           gap: 12px;
-          border-bottom: 1px solid #1a1a1a;
+          border-bottom: 1px solid var(--border-color);
         }
         .search-input {
           background: transparent;
           border: none;
-          color: #fff;
+          color: var(--text-dark);
           font-size: 14px;
           width: 100%;
           outline: none;
+        }
+        .search-input::placeholder {
+          color: var(--text-grey);
+          opacity: 0.5;
         }
         .tab-item {
           padding: 8px 0;
           cursor: pointer;
           font-size: 12px;
-          color: #666;
+          color: var(--text-grey);
           position: relative;
           transition: color 0.2s;
         }
-        .tab-item:hover { color: #fff; }
-        .tab-item.active { color: #fff; }
+        .tab-item:hover { color: var(--text-dark); }
+        .tab-item.active { color: var(--text-dark); }
         .tab-item.active::after {
           content: '';
           position: absolute;
@@ -212,7 +218,7 @@ export default function MarketSelector({ isOpen, onClose }) {
         .asset-logo {
           width: 28px;
           height: 28px;
-          background: #1a1a1a;
+          background: var(--bg-dark);
           border-radius: 6px;
           display: flex;
           align-items: center;
@@ -221,28 +227,15 @@ export default function MarketSelector({ isOpen, onClose }) {
           font-size: 10px;
           color: var(--gold);
           margin-right: 12px;
-          border: 1px solid rgba(255,255,255,0.05);
+          border: 1px solid var(--panel-border);
         }
         .market-label {
           font-size: 10px;
-          background: rgba(255,255,255,0.05);
-          color: #888;
+          background: var(--panel-border);
+          color: var(--text-grey);
           padding: 1px 4px;
           border-radius: 3px;
           margin-left: 6px;
-        }
-        .ratio-bar-container {
-          width: 100%;
-          height: 4px;
-          background: rgba(239, 68, 68, 0.2);
-          border-radius: 2px;
-          overflow: hidden;
-          margin-top: 4px;
-        }
-        .ratio-bar-fill {
-          height: 100%;
-          background: #3b82f6;
-          transition: width 0.3s;
         }
       `}</style>
 
@@ -261,11 +254,11 @@ export default function MarketSelector({ isOpen, onClose }) {
           onChange={(e) => setSearchQuery(e.target.value)}
           autoFocus
         />
-        <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#666', cursor: 'pointer', fontSize: '20px', zIndex: 2 }}>&times;</button>
+        <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-grey)', cursor: 'pointer', fontSize: '20px', zIndex: 2 }}>&times;</button>
       </div>
 
       {/* Tabs */}
-      <div className="drag-handle" style={{ display: 'flex', gap: '30px', padding: '0 16px', borderBottom: '1px solid #1a1a1a', background: 'rgba(255,255,255,0.01)', cursor: isDragging ? 'grabbing' : 'grab' }}>
+      <div className="drag-handle" style={{ display: 'flex', gap: '30px', padding: '0 24px', borderBottom: '1px solid var(--border-color)', background: 'var(--panel-bg)', cursor: isDragging ? 'grabbing' : 'grab' }}>
         {tabs.map(tab => (
           <div 
             key={tab} 
@@ -301,19 +294,19 @@ export default function MarketSelector({ isOpen, onClose }) {
             </div>
             
             <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '12px', fontWeight: '600' }}>{m.price}</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-dark)' }}>{m.price}</span>
             </div>
 
             <div style={{ textAlign: 'right' }}>
               <span style={{ fontSize: '12px', fontWeight: '600', color: m.change.startsWith('+') ? '#3b82f6' : '#ef4444' }}>{m.change}</span>
             </div>
 
-            <div style={{ textAlign: 'right', fontSize: '12px', color: '#888' }}>{m.volume}</div>
+            <div style={{ textAlign: 'right', fontSize: '12px', color: 'var(--text-grey)' }}>{m.volume}</div>
             
             <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }}>
               <div style={{ fontSize: '11px', display: 'flex', justifyContent: 'flex-end', gap: '4px' }}>
                 <span style={{ color: '#3b82f6' }}>{m.lsRatio}%</span>
-                <span style={{ color: '#666' }}>/</span>
+                <span style={{ color: 'var(--text-grey)' }}>/</span>
                 <span style={{ color: '#ef4444' }}>{100 - m.lsRatio}%</span>
               </div>
             </div>
@@ -323,7 +316,7 @@ export default function MarketSelector({ isOpen, onClose }) {
               <span style={{ fontSize: '11px', color: '#ef4444' }}>S: {m.shortFunding}</span>
             </div>
 
-            <div style={{ textAlign: 'center', opacity: 0.5, transition: 'opacity 0.2s' }} className="star-btn">
+            <div style={{ textAlign: 'center', opacity: 0.5, transition: 'opacity 0.2s', color: 'var(--text-grey)' }} className="star-btn">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
             </div>
           </div>
@@ -331,8 +324,8 @@ export default function MarketSelector({ isOpen, onClose }) {
       </div>
 
       {/* Footer */}
-      <div className="drag-handle" style={{ padding: '8px 16px', borderTop: '1px solid #1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#050505', cursor: isDragging ? 'grabbing' : 'grab' }}>
-        <div style={{ fontSize: '10px', color: '#444' }}>
+      <div className="drag-handle" style={{ padding: '12px 24px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-dark)', cursor: isDragging ? 'grabbing' : 'grab' }}>
+        <div style={{ fontSize: '11px', color: 'var(--text-grey)' }}>
           {filteredMarkets.length} markets / $3.58b Volume
         </div>
       </div>

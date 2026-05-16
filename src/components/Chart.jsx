@@ -170,8 +170,8 @@ export default function Chart() {
 
   return (
     <div ref={chartWrapperRef} className="chart panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
-      <div className="chart-toolbar" style={{ display: 'flex', padding: '10px', gap: '10px', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: '5px' }}>
+      <div className="chart-toolbar" style={{ display: 'flex', padding: '6px 8px', gap: '8px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '2px' }}>
           {timeframes.map(tf => (
             <button 
               key={tf} 
@@ -180,9 +180,10 @@ export default function Chart() {
                 background: activeTimeframe === tf ? 'rgba(200, 169, 126, 0.1)' : 'transparent',
                 color: activeTimeframe === tf ? 'var(--gold)' : 'var(--text-grey)',
                 border: 'none',
-                padding: '4px 8px',
+                padding: '3px 6px',
                 borderRadius: '4px',
                 fontSize: '11px',
+                fontWeight: activeTimeframe === tf ? '600' : '400',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -192,41 +193,47 @@ export default function Chart() {
           ))}
         </div>
         
-        <div style={{ width: '1px', height: '14px', background: 'var(--border-color)', margin: '0 5px' }} />
+        <div style={{ width: '1px', height: '12px', background: 'var(--border-color)', margin: '0 4px' }} />
         
         {/* Type Toggle */}
-        <div style={{ display: 'flex', gap: '2px', background: 'rgba(255,255,255,0.03)', padding: '2px', borderRadius: '6px' }}>
+        <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.03)', padding: '3px', borderRadius: '6px' }}>
           <button 
             onClick={() => setIsCandleType(true)}
             style={{ 
-              background: isCandleType ? 'var(--gold)' : 'transparent',
-              color: isCandleType ? '#000' : 'var(--text-grey)',
+              background: isCandleType ? 'rgba(200, 169, 126, 0.15)' : 'transparent',
+              color: isCandleType ? 'var(--gold)' : 'var(--text-grey)',
               border: 'none',
-              padding: '4px 6px',
+              padding: '4px',
               borderRadius: '4px',
               cursor: 'pointer',
               display: 'flex',
-              alignItems: 'center'
+              alignItems: 'center',
+              transition: 'all 0.2s'
             }}
             title="Candlesticks"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2h2v3h-2V2zm5 4h2v14h-2V6zM6 8h2v10H6V8zm5 11h2v3h-2v-3z" /></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2v3M12 19v3M6 5h2v14H6zM16 5h2v14h-2z"/>
+            </svg>
           </button>
           <button 
             onClick={() => setIsCandleType(false)}
             style={{ 
-              background: !isCandleType ? 'var(--gold)' : 'transparent',
-              color: !isCandleType ? '#000' : 'var(--text-grey)',
+              background: !isCandleType ? 'rgba(200, 169, 126, 0.15)' : 'transparent',
+              color: !isCandleType ? 'var(--gold)' : 'var(--text-grey)',
               border: 'none',
-              padding: '4px 6px',
+              padding: '4px',
               borderRadius: '4px',
               cursor: 'pointer',
               display: 'flex',
-              alignItems: 'center'
+              alignItems: 'center',
+              transition: 'all 0.2s'
             }}
             title="Line Chart"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 17 6-6 4 4 8-8"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 17l6-6 4 4 8-8"/>
+            </svg>
           </button>
         </div>
 
@@ -239,7 +246,7 @@ export default function Chart() {
             background: 'transparent',
             border: 'none',
             color: 'var(--text-grey)',
-            padding: '6px',
+            padding: '4px',
             borderRadius: '6px',
             cursor: 'pointer',
             display: 'flex',
