@@ -39,33 +39,61 @@ export default function PortfolioMetrics() {
     gainloss: { label: 'Gain & Loss', value: '22 vs 13', sub: '62.8% Win Rate' }
   };
 
-  // Mock datasets for chart.js
+  // Dynamic datasets based on timeframe
   const chartLabels = {
     '7D': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    '30D': ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-    '1Y': ['Q1', 'Q2', 'Q3', 'Q4'],
-    'ALL': ['2023', 'Mid 2024', 'End 2025', 'Now']
+    '30D': Array.from({ length: 30 }, (_, i) => `${i + 1}`),
+    '1Y': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    'ALL': ['2022', '2023', '2024', '2025', '2026']
   };
 
   const pnlData = {
-    '7D': { gross: [142, 312, 280, 720, 610, 940, 1799.63], net: [132, 290, 255, 680, 560, 880, 1699.63] },
-    '30D': { gross: [240.50, 490.20, 1120.40, 1799.63], net: [220.50, 440.20, 1010.40, 1699.63] },
-    '1Y': { gross: [310.20, 842.10, 1340.50, 1799.63], net: [280.20, 792.10, 1240.50, 1699.63] },
-    'ALL': { gross: [0, 420, 1280.40, 1799.63], net: [0, 380, 1190.40, 1699.63] }
+    '7D': { 
+      gross: [142, 312, 280, 720, 610, 940, 1799.63], 
+      net: [132, 290, 255, 680, 560, 880, 1699.63] 
+    },
+    '30D': { 
+      gross: Array.from({ length: 30 }, (_, i) => Math.round(200 + (1599.63 / 29) * i + Math.sin(i) * 80)), 
+      net: Array.from({ length: 30 }, (_, i) => Math.round(180 + (1519.63 / 29) * i + Math.sin(i) * 75)) 
+    },
+    '1Y': { 
+      gross: [120, 240, 390, 520, 480, 720, 890, 1100, 1050, 1340, 1580, 1799.63], 
+      net: [110, 220, 360, 480, 440, 670, 830, 1020, 970, 1240, 1470, 1699.63] 
+    },
+    'ALL': { 
+      gross: [120, 420, 890, 1340, 1799.63], 
+      net: [100, 380, 810, 1220, 1699.63] 
+    }
   };
 
   const volumeData = {
     '7D': [15000, 22000, 18000, 35000, 28000, 42000, 60000],
-    '30D': [45000, 58000, 72000, 95000],
-    '1Y': [120000, 185000, 240000, 310000],
-    'ALL': [25000, 85000, 145000, 203444.31]
+    '30D': [
+      8000, 12000, 15000, 9000, 11000, 14000, 18000, 22000, 16000, 13000, 
+      19000, 24000, 17000, 15000, 21000, 27000, 19000, 22000, 26000, 18000, 
+      20000, 25000, 31000, 23000, 21000, 28000, 34000, 27000, 29000, 35000
+    ],
+    '1Y': [12000, 15000, 18000, 22000, 17000, 25000, 29000, 31000, 24000, 34000, 38000, 45000],
+    'ALL': [35000, 75000, 120000, 165000, 203444.31]
   };
 
   const gainLossData = {
-    '7D': { wins: [4, 8, 11, 15, 17, 20, 22], losses: [1, 3, 5, 7, 9, 11, 13] },
-    '30D': { wins: [5, 12, 18, 22], losses: [2, 6, 9, 13] },
-    '1Y': { wins: [6, 14, 19, 22], losses: [3, 7, 10, 13] },
-    'ALL': { wins: [0, 10, 18, 22], losses: [0, 5, 10, 13] }
+    '7D': { 
+      wins: [2, 4, 3, 5, 2, 4, 6], 
+      losses: [-1, -2, -1, 0, -3, -2, -1] 
+    },
+    '30D': { 
+      wins: [2, 3, 1, 2, 4, 2, 1, 3, 2, 2, 4, 1, 3, 2, 3, 1, 2, 2, 4, 1, 3, 2, 3, 2, 1, 4, 3, 2, 3, 5], 
+      losses: [-1, -1, -2, -1, 0, -2, -3, -1, -2, -1, -1, -2, 0, -1, -2, -1, -3, -1, 0, -2, -1, -1, -2, -1, -3, 0, -1, -2, -1, -1] 
+    },
+    '1Y': { 
+      wins: [3, 5, 4, 6, 2, 5, 7, 8, 4, 6, 9, 12], 
+      losses: [-1, -2, -3, -1, -4, -2, -3, -1, -5, -2, -3, -2] 
+    },
+    'ALL': { 
+      wins: [12, 18, 25, 32, 42], 
+      losses: [-5, -8, -12, -10, -13] 
+    }
   };
 
   const currentLabels = chartLabels[activeTimeframe];
@@ -74,6 +102,10 @@ export default function PortfolioMetrics() {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false
+    },
     plugins: {
       legend: {
         display: false
@@ -104,7 +136,7 @@ export default function PortfolioMetrics() {
             }
             if (context.parsed.y !== null) {
               if (activeMainTab === 'gainloss') {
-                label += context.parsed.y + ' trades';
+                label += Math.abs(context.parsed.y) + ' trades';
               } else {
                 label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
               }
@@ -139,9 +171,10 @@ export default function PortfolioMetrics() {
             size: 9
           },
           callback: (value) => {
-            if (activeMainTab === 'gainloss') return value;
+            if (activeMainTab === 'gainloss') return Math.abs(value);
             if (value >= 1000) return `$${(value / 1000).toFixed(0)}k`;
-            return `$${value}`;
+            if (value <= -1000) return `-$${(Math.abs(value) / 1000).toFixed(0)}k`;
+            return value < 0 ? `-$${Math.abs(value)}` : `$${value}`;
           }
         }
       }
@@ -150,6 +183,8 @@ export default function PortfolioMetrics() {
 
   // Generate chart data based on active tab
   const getChartData = () => {
+    const barThickness = activeTimeframe === '30D' ? 5 : activeTimeframe === '1Y' ? 14 : activeTimeframe === 'ALL' ? 34 : 26;
+
     if (activeMainTab === 'pnl') {
       const grossSet = pnlData[activeTimeframe].gross;
       const netSet = pnlData[activeTimeframe].net;
@@ -159,23 +194,14 @@ export default function PortfolioMetrics() {
           label: 'Gross Profit',
           data: grossSet,
           borderColor: goldAccent,
-          backgroundColor: (context) => {
-            const chart = context.chart;
-            const { ctx, chartArea } = chart;
-            if (!chartArea) return null;
-            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-            gradient.addColorStop(0, 'rgba(188, 137, 97, 0.25)');
-            gradient.addColorStop(1, 'rgba(188, 137, 97, 0.0)');
-            return gradient;
-          },
           borderWidth: 2,
-          fill: true,
+          fill: false,
           tension: 0.4,
           pointBackgroundColor: '#ffffff',
           pointBorderColor: goldAccent,
           pointBorderWidth: 2,
           pointHoverRadius: 6,
-          pointRadius: 4
+          pointRadius: activeTimeframe === '30D' ? 0 : 4
         }
       ];
 
@@ -184,24 +210,15 @@ export default function PortfolioMetrics() {
           label: 'Net Profit',
           data: netSet,
           borderColor: '#3b82f6',
-          backgroundColor: (context) => {
-            const chart = context.chart;
-            const { ctx, chartArea } = chart;
-            if (!chartArea) return null;
-            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-            gradient.addColorStop(0, 'rgba(59, 130, 246, 0.15)');
-            gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
-            return gradient;
-          },
           borderWidth: 2,
           borderDash: [5, 5],
-          fill: true,
+          fill: false,
           tension: 0.4,
           pointBackgroundColor: '#ffffff',
           pointBorderColor: '#3b82f6',
           pointBorderWidth: 2,
           pointHoverRadius: 6,
-          pointRadius: 4
+          pointRadius: activeTimeframe === '30D' ? 0 : 4
         });
       }
 
@@ -214,23 +231,15 @@ export default function PortfolioMetrics() {
           {
             label: 'Volume',
             data: volSet,
-            backgroundColor: (context) => {
-              const chart = context.chart;
-              const { ctx, chartArea } = chart;
-              if (!chartArea) return null;
-              const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-              gradient.addColorStop(0, 'rgba(188, 137, 97, 0.8)');
-              gradient.addColorStop(1, 'rgba(188, 137, 97, 0.1)');
-              return gradient;
-            },
-            borderRadius: 6,
+            backgroundColor: goldAccent,
+            borderRadius: 4,
             borderWidth: 0,
-            barThickness: 34
+            barThickness: barThickness
           }
         ]
       };
     } else {
-      // Gain & Loss
+      // Gain & Loss (Bar chart showing upward blue and downward red bars)
       const wins = gainLossData[activeTimeframe].wins;
       const losses = gainLossData[activeTimeframe].losses;
       return {
@@ -239,43 +248,18 @@ export default function PortfolioMetrics() {
           {
             label: 'Wins',
             data: wins,
-            borderColor: '#10b981',
-            backgroundColor: (context) => {
-              const chart = context.chart;
-              const { ctx, chartArea } = chart;
-              if (!chartArea) return null;
-              const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-              gradient.addColorStop(0, 'rgba(16, 185, 129, 0.15)');
-              gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
-              return gradient;
-            },
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#10b981',
-            pointRadius: 3
+            backgroundColor: '#3b82f6',
+            borderRadius: 4,
+            borderWidth: 0,
+            barThickness: barThickness
           },
           {
             label: 'Losses',
             data: losses,
-            borderColor: '#ef4444',
-            backgroundColor: (context) => {
-              const chart = context.chart;
-              const { ctx, chartArea } = chart;
-              if (!chartArea) return null;
-              const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-              gradient.addColorStop(0, 'rgba(239, 68, 68, 0.12)');
-              gradient.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
-              return gradient;
-            },
-            borderWidth: 2,
-            borderDash: [4, 4],
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#ef4444',
-            pointRadius: 3
+            backgroundColor: '#ef4444',
+            borderRadius: 4,
+            borderWidth: 0,
+            barThickness: barThickness
           }
         ]
       };
@@ -283,7 +267,7 @@ export default function PortfolioMetrics() {
   };
 
   return (
-    <div className="panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div className="panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
       
       {/* Tab Selector Headers */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--panel-border)' }}>
@@ -295,22 +279,22 @@ export default function PortfolioMetrics() {
               onClick={() => setActiveMainTab(tab)}
               style={{
                 flex: 1,
-                padding: '20px 24px',
+                padding: '10px 16px',
                 cursor: 'pointer',
                 background: active ? 'rgba(255,255,255,0.01)' : 'transparent',
                 borderBottom: `2px solid ${active ? goldAccent : 'transparent'}`,
                 transition: 'all 0.3s ease',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '4px'
+                gap: '2px'
               }}
             >
-              <span style={{ fontSize: '10px', color: 'var(--text-grey)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>
+              <span style={{ fontSize: '9px', color: 'var(--text-grey)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>
                 {topStats[tab].label}
               </span>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <span style={{ 
-                  fontSize: '22px', 
+                  fontSize: '13px', 
                   fontWeight: 'bold', 
                   color: active ? goldAccent : 'var(--text-dark)', 
                   fontFamily: 'Source Code Pro',
@@ -318,17 +302,17 @@ export default function PortfolioMetrics() {
                 }}>
                   {topStats[tab].value}
                 </span>
+                <span style={{ fontSize: '9px', color: active ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.2)', transition: 'color 0.3s' }}>
+                  {topStats[tab].sub}
+                </span>
               </div>
-              <span style={{ fontSize: '10px', color: active ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.2)', transition: 'color 0.3s' }}>
-                {topStats[tab].sub}
-              </span>
             </div>
           );
         })}
       </div>
 
       {/* Chart Controls & Canvas Area */}
-      <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
+      <div style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {/* Toggle switch */}
           <div 
@@ -386,8 +370,8 @@ export default function PortfolioMetrics() {
         </div>
 
         {/* Glowing ChartJS Plot Area */}
-        <div style={{ position: 'relative', width: '100%', flex: 1, minHeight: '180px' }}>
-          {activeMainTab === 'volume' ? (
+        <div style={{ position: 'relative', width: '100%', flex: 1, minHeight: 0 }}>
+          {activeMainTab === 'volume' || activeMainTab === 'gainloss' ? (
             <Bar data={getChartData()} options={options} />
           ) : (
             <Line data={getChartData()} options={options} />

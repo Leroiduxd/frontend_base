@@ -1,11 +1,61 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from '../components/Sidebar';
 import Positions from '../components/Positions';
 import Ticker from '../components/Ticker';
 import PortfolioMetrics from '../components/PortfolioMetrics';
+import MarketMetrics from '../components/MarketMetrics';
+import LiveSummary from '../components/LiveSummary';
 
 export default function Portfolio() {
   const goldAccent = '#BC8961';
+  const isDragging = useRef(false);
+  const [positionsHeight, setPositionsHeight] = useState(340);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isDragging.current) return;
+
+      const windowHeight = window.innerHeight;
+      const mouseY = e.clientY;
+
+      // Bottom offsets in Portfolio: padding (10) + ticker (40) + gap (8) = 58px
+      const bottomOffset = 58;
+      
+      let newHeight = windowHeight - mouseY - bottomOffset;
+
+      // Constraints matching Trade.jsx
+      const snapThreshold = 80;
+      const minOpenHeight = 180;
+
+      if (newHeight < snapThreshold) {
+        newHeight = 40;
+      } else if (newHeight < minOpenHeight) {
+        newHeight = minOpenHeight;
+      }
+
+      const maxPositionsHeight = windowHeight * 0.6;
+      if (newHeight > maxPositionsHeight) {
+        newHeight = maxPositionsHeight;
+      }
+
+      setPositionsHeight(newHeight);
+
+      // Dispatch a window resize event to trigger Chart.js internal canvas redraw in real-time
+      window.dispatchEvent(new Event('resize'));
+    };
+
+    const handleMouseUp = () => {
+      isDragging.current = false;
+      document.body.style.cursor = 'default';
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
 
   return (
     <div style={{ 
@@ -29,11 +79,39 @@ export default function Portfolio() {
         height: '100%',
         overflow: 'hidden'
       }}>
+        {/* LIVE ACCOUNT SUMMARY BAR */}
+        <div style={{ height: '70px', flexShrink: 0 }}>
+          <LiveSummary />
+        </div>
+
         {/* TOP PANEL: Portfolio Performance & Analytics Component */}
         <PortfolioMetrics />
 
+        {/* RESIZER BAR */}
+        <div
+          className="resizer"
+          style={{ 
+            gridRow: 'auto',
+            gridColumn: 'auto',
+            marginTop: '-8px',
+            marginBottom: '-8px',
+            height: '10px', 
+            cursor: 'ns-resize', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            zIndex: 10,
+            flexShrink: 0,
+            userSelect: 'none'
+          }}
+          onMouseDown={(e) => {
+            isDragging.current = true;
+            document.body.style.cursor = 'ns-resize';
+          }}
+        />
+
         {/* BOTTOM PANEL: Positions */}
-        <div style={{ height: '340px', flexShrink: 0 }}>
+        <div style={{ height: `${positionsHeight}px`, flexShrink: 0 }}>
           <Positions />
         </div>
 
@@ -43,34 +121,8 @@ export default function Portfolio() {
         </div>
       </div>
 
-      {/* RIGHT COLUMN: "vide" (Width: 320px matching OrderPanel width exactly) */}
-      <div className="panel" style={{ 
-        width: '320px', 
-        height: '100%', 
-        padding: '24px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'relative',
-        overflow: 'hidden',
-        flexShrink: 0
-      }}>
-        {/* Subtle grid pattern background */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.02) 1px, transparent 0)',
-          backgroundSize: '16px 16px',
-          pointerEvents: 'none'
-        }} />
-        <span style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.15em', color: goldAccent, fontFamily: 'Source Code Pro', textAlign: 'center' }}>
-          [ MARKET METRICS ]
-        </span>
-        <span style={{ fontSize: '10px', color: 'var(--text-grey)', marginTop: '6px', textTransform: 'uppercase', textAlign: 'center' }}>
-          Awaiting trade volume index...
-        </span>
-      </div>
+      {/* RIGHT COLUMN: Market Metrics Widget */}
+      <MarketMetrics />
     </div>
   );
 }
