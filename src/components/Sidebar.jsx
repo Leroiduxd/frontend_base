@@ -112,7 +112,7 @@ export default function Sidebar() {
         <img src="/logo.svg" alt="Brokex" style={{ width: '22px' }} />
       </div>
 
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '5px', width: '100%', alignItems: 'center', marginTop: '20px' }}>
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: '3px', width: '100%', alignItems: 'center', marginTop: '10px' }}>
         {menuItems.map((item) => (
           <Link 
             key={item.path}

@@ -1,8 +1,16 @@
 import { useState } from 'react'
+import PositionManager from './PositionManager'
 
 export default function Positions() {
   const [activeTab, setActiveTab] = useState('open')
   const [filter, setFilter] = useState('all')
+  const [selectedPosition, setSelectedPosition] = useState(null)
+  const [isManagerOpen, setIsManagerOpen] = useState(false)
+
+  const openManager = (pos) => {
+    setSelectedPosition(pos);
+    setIsManagerOpen(true);
+  };
 
   const positions = [
     { id: '#8492', asset: 'XAU/USD', side: 'Long', size: '$25,000', leverage: '50x', collateral: '$500', liqPrice: '$2,285.50', sl: '$2,300.00', tp: '$2,350.00', marketPrice: '$2,315.10', pnlUsd: '+$125.40', pnlPct: '+25.08%' },
@@ -37,12 +45,12 @@ export default function Positions() {
               key={tab}
               onClick={() => setActiveTab(tab)}
               style={{ 
-                background: activeTab === tab ? 'rgba(200, 169, 126, 0.15)' : 'transparent', 
-                border: 'none', 
-                color: activeTab === tab ? 'var(--gold)' : 'var(--text-grey)', 
+                background: 'transparent', 
+                border: activeTab === tab ? '1px solid #BC8961' : '1px solid transparent', 
+                color: activeTab === tab ? '#BC8961' : 'var(--text-grey)', 
                 fontSize: '10px', 
                 fontWeight: 'bold',
-                padding: '6px 12px',
+                padding: '4px 10px',
                 borderRadius: '6px',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
@@ -60,12 +68,12 @@ export default function Positions() {
                 key={f}
                 onClick={() => setFilter(f)}
                 style={{ 
-                  background: filter === f ? 'rgba(200, 169, 126, 0.2)' : 'transparent', 
-                  border: 'none', 
-                  color: filter === f ? 'var(--gold)' : 'var(--text-grey)', 
+                  background: 'transparent', 
+                border: filter === f ? '1px solid #BC8961' : '1px solid transparent', 
+                color: filter === f ? '#BC8961' : 'var(--text-grey)', 
                   fontSize: '9px', 
                   fontWeight: 'bold',
-                  padding: '6px 12px',
+                  padding: '4px 10px',
                   borderRadius: '6px',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
@@ -121,17 +129,44 @@ export default function Positions() {
                 <span style={{ fontSize: '7px', padding: '1px 4px', borderRadius: '3px', background: pos.side === 'Long' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: pos.side === 'Long' ? '#3b82f6' : '#ef4444', fontWeight: 'bold' }}>{pos.side.toUpperCase()}</span>
               </div>
               <div style={{ flex: 1, fontWeight: '500' }}>{pos.size}</div>
-              <div style={{ flex: 1, color: 'var(--gold)', fontWeight: '600' }}>{pos.leverage}</div>
-              <div style={{ flex: 1 }}>{pos.collateral}</div>
+              <div style={{ flex: 1, color: '#BC8961', fontWeight: '600' }}>{pos.leverage}</div>
+              <div style={{ flex: 1, fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {pos.collateral}
+                <button 
+                  onClick={() => openManager(pos)}
+                  style={{ background: 'transparent', border: 'none', color: '#BC8961', cursor: 'pointer', padding: '2px', display: 'flex' }}
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+              </div>
               <div style={{ flex: 1, color: '#ef4444', fontSize: '10px' }}>{pos.liqPrice}</div>
-              <div style={{ flex: 1, color: 'var(--text-grey)' }}>{pos.sl}</div>
-              <div style={{ flex: 1, color: 'var(--text-grey)' }}>{pos.tp}</div>
+              <div style={{ flex: 1, color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {pos.sl}
+                <button 
+                  onClick={() => openManager(pos)}
+                  style={{ background: 'transparent', border: 'none', color: 'var(--text-grey)', cursor: 'pointer', padding: '2px', opacity: 0.6 }}
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                </button>
+              </div>
+              <div style={{ flex: 1, color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {pos.tp}
+                <button 
+                  onClick={() => openManager(pos)}
+                  style={{ background: 'transparent', border: 'none', color: 'var(--text-grey)', cursor: 'pointer', padding: '2px', opacity: 0.6 }}
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                </button>
+              </div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{pos.marketPrice}</div>
               <div style={{ flex: 1.5, textAlign: 'right', fontWeight: 'bold', color: pos.pnlUsd.startsWith('+') ? '#3b82f6' : '#ef4444' }}>
                 {pos.pnlUsd} <span style={{ fontSize: '9px', opacity: 0.8 }}>({pos.pnlPct})</span>
               </div>
               <div style={{ width: '80px', textAlign: 'right' }}>
-                <button style={{ background: 'transparent', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', fontSize: '9px', padding: '2px 6px', borderRadius: '3px', cursor: 'pointer', fontWeight: '600' }}>CLOSE</button>
+                <button 
+                  onClick={() => openManager(pos)}
+                  style={{ background: 'transparent', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', fontSize: '9px', padding: '2px 6px', borderRadius: '3px', cursor: 'pointer', fontWeight: '600' }}
+                >CLOSE</button>
               </div>
             </div>
           ))}
@@ -152,13 +187,13 @@ export default function Positions() {
                 <span style={{ fontSize: '7px', padding: '1px 4px', borderRadius: '3px', background: order.side === 'Long' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: order.side === 'Long' ? '#3b82f6' : '#ef4444', fontWeight: 'bold' }}>{order.side.toUpperCase()}</span>
               </div>
               <div style={{ flex: 1, fontWeight: '500' }}>{order.size}</div>
-              <div style={{ flex: 1, color: 'var(--gold)', fontWeight: '600' }}>{order.leverage}</div>
+              <div style={{ flex: 1, color: '#BC8961', fontWeight: '600' }}>{order.leverage}</div>
               <div style={{ flex: 1 }}>{order.collateral}</div>
               <div style={{ flex: 1, color: 'var(--text-grey)', fontSize: '10px' }}>{order.liqPrice}</div>
               <div style={{ flex: 1, color: 'var(--text-grey)' }}>{order.sl}</div>
               <div style={{ flex: 1, color: 'var(--text-grey)' }}>{order.tp}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{order.orderPrice}</div>
-              <div style={{ flex: 1.5, textAlign: 'right', fontWeight: 'bold', color: 'var(--gold)' }}>{order.status}</div>
+              <div style={{ flex: 1.5, textAlign: 'right', fontWeight: 'bold', color: '#BC8961' }}>{order.status}</div>
               <div style={{ width: '80px', textAlign: 'right' }}>
                 <button style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-dark)', fontSize: '9px', padding: '2px 6px', borderRadius: '3px', cursor: 'pointer', fontWeight: '600' }}>CANCEL</button>
               </div>
@@ -181,7 +216,7 @@ export default function Positions() {
                 <span style={{ fontSize: '7px', padding: '1px 4px', borderRadius: '3px', background: hist.side === 'Long' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: hist.side === 'Long' ? '#3b82f6' : '#ef4444', fontWeight: 'bold' }}>{hist.side.toUpperCase()}</span>
               </div>
               <div style={{ flex: 1, fontWeight: '500' }}>{hist.size}</div>
-              <div style={{ flex: 1, color: 'var(--gold)', fontWeight: '600' }}>{hist.leverage}</div>
+              <div style={{ flex: 1, color: '#BC8961', fontWeight: '600' }}>{hist.leverage}</div>
               <div style={{ flex: 1 }}>{hist.collateral}</div>
               <div style={{ flex: 1, color: 'var(--text-grey)', fontSize: '10px' }}>CLOSED</div>
               <div style={{ flex: 1, color: 'var(--text-grey)' }}>{hist.sl}</div>
@@ -200,6 +235,12 @@ export default function Positions() {
           background: rgba(255,255,255,0.03);
         }
       `}</style>
+
+      <PositionManager 
+        isOpen={isManagerOpen} 
+        onClose={() => setIsManagerOpen(false)} 
+        position={selectedPosition} 
+      />
     </div>
   )
 }

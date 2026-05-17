@@ -100,16 +100,16 @@ export default function Chart() {
       // Initial historical data
       const data = [];
       let price = 2300;
-      const interval = 60; 
+      const interval = 60;
       const now = Math.floor(Date.now() / 1000);
-      
+
       for (let i = 0; i < 200; i++) {
         const time = now - (200 - i) * interval;
         const open = price;
         const close = price + (Math.random() - 0.5) * 10;
         const high = Math.max(open, close) + Math.random() * 2;
         const low = Math.min(open, close) - Math.random() * 2;
-        
+
         if (isCandleType) {
           data.push({ time, open, high, low, close });
         } else {
@@ -137,7 +137,7 @@ export default function Chart() {
 
       const change = (Math.random() - 0.5) * 4;
       const newPrice = lastPriceRef.current + change;
-      
+
       if (isCandleType) {
         seriesRef.current.update({
           time: lastTimeRef.current,
@@ -173,10 +173,10 @@ export default function Chart() {
       <div className="chart-toolbar" style={{ display: 'flex', padding: '6px 8px', gap: '8px', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: '2px' }}>
           {timeframes.map(tf => (
-            <button 
-              key={tf} 
+            <button
+              key={tf}
               onClick={() => setActiveTimeframe(tf)}
-              style={{ 
+              style={{
                 background: activeTimeframe === tf ? 'rgba(200, 169, 126, 0.1)' : 'transparent',
                 color: activeTimeframe === tf ? 'var(--gold)' : 'var(--text-grey)',
                 border: 'none',
@@ -192,14 +192,14 @@ export default function Chart() {
             </button>
           ))}
         </div>
-        
+
         <div style={{ width: '1px', height: '12px', background: 'var(--border-color)', margin: '0 4px' }} />
-        
+
         {/* Type Toggle */}
         <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.03)', padding: '3px', borderRadius: '6px' }}>
-          <button 
+          <button
             onClick={() => setIsCandleType(true)}
-            style={{ 
+            style={{
               background: isCandleType ? 'rgba(200, 169, 126, 0.15)' : 'transparent',
               color: isCandleType ? 'var(--gold)' : 'var(--text-grey)',
               border: 'none',
@@ -213,12 +213,12 @@ export default function Chart() {
             title="Candlesticks"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2v3M12 19v3M6 5h2v14H6zM16 5h2v14h-2z"/>
+              <path d="M12 2v3M12 19v3M6 5h2v14H6zM16 5h2v14h-2z" />
             </svg>
           </button>
-          <button 
+          <button
             onClick={() => setIsCandleType(false)}
-            style={{ 
+            style={{
               background: !isCandleType ? 'rgba(200, 169, 126, 0.15)' : 'transparent',
               color: !isCandleType ? 'var(--gold)' : 'var(--text-grey)',
               border: 'none',
@@ -232,7 +232,7 @@ export default function Chart() {
             title="Line Chart"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 17l6-6 4 4 8-8"/>
+              <path d="M3 17l6-6 4 4 8-8" />
             </svg>
           </button>
         </div>
@@ -240,9 +240,9 @@ export default function Chart() {
         <div style={{ flex: 1 }} />
 
         {/* Fullscreen Button */}
-        <button 
+        <button
           onClick={toggleFullscreen}
-          style={{ 
+          style={{
             background: 'transparent',
             border: 'none',
             color: 'var(--text-grey)',
@@ -256,13 +256,13 @@ export default function Chart() {
           title="Toggle Fullscreen"
         >
           {isFullscreen ? (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v5H3M21 8h-5V3M3 16h5v5M16 21v-5h5"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v5H3M21 8h-5V3M3 16h5v5M16 21v-5h5" /></svg>
           ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
           )}
         </button>
       </div>
-      
+
       <div style={{ flex: 1, position: 'relative' }}>
         {error ? (
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', fontSize: '12px', textAlign: 'center', padding: '20px' }}>
