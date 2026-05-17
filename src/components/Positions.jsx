@@ -40,24 +40,28 @@ export default function Positions() {
       }}>
         {/* Left Tabs */}
         <div style={{ display: 'flex', gap: '5px' }}>
-          {['open', 'orders', 'history'].map(tab => (
-            <button 
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{ 
-                background: 'transparent', 
-                border: activeTab === tab ? '1px solid #BC8961' : '1px solid transparent', 
-                color: activeTab === tab ? '#BC8961' : 'var(--text-grey)', 
-                fontSize: '10px', 
-                fontWeight: 'bold',
-                padding: '4px 10px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                textTransform: 'uppercase'
-              }}
-            >{tab} positions</button>
-          ))}
+          {['open', 'orders', 'history'].map(tab => {
+            const count = tab === 'open' ? positions.length : tab === 'orders' ? orders.length : history.length;
+            const labelText = tab === 'open' ? `open positions [${count}]` : tab === 'orders' ? `orders [${count}]` : `history [${count}]`;
+            return (
+              <button 
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{ 
+                  background: 'transparent', 
+                  border: activeTab === tab ? '1px solid #BC8961' : '1px solid transparent', 
+                  color: activeTab === tab ? '#BC8961' : 'var(--text-grey)', 
+                  fontSize: '10px', 
+                  fontWeight: 'bold',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  textTransform: 'uppercase'
+                }}
+              >{labelText}</button>
+            );
+          })}
         </div>
 
         {/* Right Section */}

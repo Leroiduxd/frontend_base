@@ -312,7 +312,7 @@ export default function PortfolioMetrics() {
       </div>
 
       {/* Chart Controls & Canvas Area */}
-      <div style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
+      <div style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, minHeight: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {/* Toggle switch */}
           <div 
@@ -372,9 +372,9 @@ export default function PortfolioMetrics() {
         {/* Glowing ChartJS Plot Area */}
         <div style={{ position: 'relative', width: '100%', flex: 1, minHeight: 0 }}>
           {activeMainTab === 'volume' || activeMainTab === 'gainloss' ? (
-            <Bar data={getChartData()} options={options} />
+            <Bar data={getChartData()} options={options} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
           ) : (
-            <Line data={getChartData()} options={options} />
+            <Line data={getChartData()} options={options} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
           )}
         </div>
       </div>
