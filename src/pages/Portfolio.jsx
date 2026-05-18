@@ -80,7 +80,7 @@ export default function Portfolio() {
         overflow: 'hidden'
       }}>
         {/* LIVE ACCOUNT SUMMARY BAR */}
-        <div style={{ height: '70px', flexShrink: 0 }}>
+        <div style={{ height: '46px', flexShrink: 0 }}>
           <LiveSummary />
         </div>
 
