@@ -19,7 +19,7 @@ function App() {
         <Route path="/" element={isMobile ? <MobileTrade /> : <Trade />} />
         <Route path="/portfolio" element={isMobile ? <MobileTrade /> : <Portfolio />} />
         <Route path="/market" element={isMobile ? <MobileTrade /> : <Markets />} />
-        <Route path="/vault" element={isMobile ? <MobileVault /> : <Vault />} />
+        <Route path="/vault" element={isMobile ? <MobileTrade /> : <Vault />} />
         <Route path="*" element={isMobile ? <MobileTrade /> : <Trade />} />
       </Routes>
     </Router>

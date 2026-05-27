@@ -196,43 +196,23 @@ export default function Chart() {
         <div style={{ width: '1px', height: '12px', background: 'var(--border-color)', margin: '0 4px' }} />
 
         {/* Type Toggle */}
-        <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.03)', padding: '3px', borderRadius: '6px' }}>
+        <div style={{ display: 'flex', gap: '6px' }}>
           <button
             onClick={() => setIsCandleType(true)}
-            style={{
-              background: isCandleType ? 'rgba(200, 169, 126, 0.15)' : 'transparent',
-              color: isCandleType ? 'var(--gold)' : 'var(--text-grey)',
-              border: 'none',
-              padding: '4px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              transition: 'all 0.2s'
-            }}
-            title="Candlesticks"
+            className={`chart-action-btn ${isCandleType ? 'active' : ''}`}
+            title="Chandelier Japonais"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2v3M12 19v3M6 5h2v14H6zM16 5h2v14h-2z" />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" id="Trading-Pattern-Up--Streamline-Ultimate">
+              <path fill="currentColor" fillRule="evenodd" d="M3.25001 1c0 -0.414214 -0.33579 -0.75 -0.75 -0.75 -0.41422 0 -0.75 0.335786 -0.75 0.75v3.64999c-0.41363 0 -0.797166 0.14006 -1.078556 0.42145 -0.281389 0.28139 -0.421446 0.66493 -0.421446 1.07855v3c0 0.41363 0.140057 0.79717 0.421446 1.07851 0.28139 0.2814 0.664926 0.4215 1.078556 0.4215v2.5c0 0.4142 0.33578 0.75 0.75 0.75 0.41421 0 0.75 -0.3358 0.75 -0.75v-2.5c0.41362 0 0.79716 -0.1401 1.07855 -0.4215 0.28139 -0.28134 0.42145 -0.66488 0.42145 -1.07851v-3c0 -0.41362 -0.14006 -0.79716 -0.42145 -1.07855 -0.28139 -0.28139 -0.66493 -0.42145 -1.07855 -0.42145V1Zm4 18.75c-0.41363 0 -0.79717 -0.1401 -1.07856 -0.4215 -0.28139 -0.2813 -0.42144 -0.6649 -0.42144 -1.0785v-4.5c0 -0.4136 0.14005 -0.7972 0.42144 -1.0786s0.66493 -0.4214 1.07856 -0.4214V9.74999c0 -0.41421 0.33578 -0.75 0.75 -0.75 0.41421 0 0.75 0.33579 0.75 0.75V12.25c0.41362 0 0.79716 0.14 1.07855 0.4214 0.28144 0.2814 0.42144 0.665 0.42144 1.0786v4.5c0 0.4136 -0.14 0.7972 -0.42144 1.0785 -0.28139 0.2814 -0.66493 0.4215 -1.07855 0.4215V23c0 0.4142 -0.33579 0.75 -0.75 0.75 -0.41422 0 -0.75 -0.3358 -0.75 -0.75v-3.25Zm5.72149 -7.9786c0.2813 -0.2813 0.6649 -0.4214 1.0785 -0.4214h1.5c0.4136 0 0.7972 0.1401 1.0786 0.4214 0.2814 0.2814 0.4214 0.665 0.4214 1.0786v4c0 0.4136 -0.14 0.7972 -0.4214 1.0786 -0.2814 0.2813 -0.665 0.4214 -1.0786 0.4214v3.5c0 0.4142 -0.3358 0.75 -0.75 0.75s-0.75 -0.3358 -0.75 -0.75v-3.5c-0.4136 0 -0.7972 -0.1401 -1.0785 -0.4214 -0.2814 -0.2814 -0.4215 -0.665 -0.4215 -1.0786v-4c0 -0.4136 0.1401 -0.7972 0.4215 -1.0786Zm7.8547 -9.00155c-0.1425 -0.17099 -0.3536 -0.26986 -0.5762 -0.26986 -0.2226 0 -0.4337 0.09887 -0.5762 0.26986l-3 3.60001c-0.1863 0.22356 -0.2264 0.53472 -0.103 0.79826 0.1234 0.26353 0.3882 0.43188 0.6792 0.43188h2v11.25c0 0.5523 0.4477 1 1 1s1 -0.4477 1 -1V7.6h2c0.291 0 0.5557 -0.16835 0.6792 -0.43188 0.1234 -0.26354 0.0833 -0.5747 -0.103 -0.79826l-3 -3.60001Z" clipRule="evenodd" strokeWidth="1" />
             </svg>
           </button>
           <button
             onClick={() => setIsCandleType(false)}
-            style={{
-              background: !isCandleType ? 'rgba(200, 169, 126, 0.15)' : 'transparent',
-              color: !isCandleType ? 'var(--gold)' : 'var(--text-grey)',
-              border: 'none',
-              padding: '4px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              transition: 'all 0.2s'
-            }}
-            title="Line Chart"
+            className={`chart-action-btn ${!isCandleType ? 'active' : ''}`}
+            title="Graphique en Ligne"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 17l6-6 4 4 8-8" />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <path fill="currentColor" fillRule="evenodd" d="M1.25 18a.75.75 0 0 1 .75-.75h20a.75.75 0 0 1 0 1.5H2a.75.75 0 0 1-.75-.75Zm3.47-5.53a.75.75 0 0 1 0-1.06l5.5-5.5a.75.75 0 0 1 1.06 0l4.5 4.5 4.97-4.97a.75.75 0 1 1 1.06 1.06l-5.5 5.5a.75.75 0 0 1-1.06 0l-4.5-4.5-4.97 4.97a.75.75 0 0 1-1.06 0Z" clipRule="evenodd" />
             </svg>
           </button>
         </div>

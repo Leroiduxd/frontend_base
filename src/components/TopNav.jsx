@@ -30,11 +30,11 @@ export default function TopNav({ onOpenMarket }) {
         </div>
 
         {/* SCROLLABLE RIGHT SIDE: Stats Items */}
-        <div className="scrollable-stats" style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '20px', 
-          overflowX: 'auto', 
+        <div className="scrollable-stats" style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '20px',
+          overflowX: 'auto',
           flexGrow: 1,
           padding: '0 20px 0 5px',
           scrollbarWidth: 'none',
@@ -48,7 +48,7 @@ export default function TopNav({ onOpenMarket }) {
               flex-shrink: 0;
             }
           `}</style>
-          
+
           {/* Price Section */}
           <div className="stat-item">
             <span className="stat-label">Price</span>

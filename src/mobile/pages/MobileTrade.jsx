@@ -39,24 +39,15 @@ export default function MobileTrade() {
   const location = useLocation();
 
   // Primary active tab switcher: 'markets', 'trade', 'portfolio'
+  // On first load, parse path to select matching tab, fallback to 'markets' by default
   const [activeTab, setActiveTab] = useState(() => {
-    if (location.pathname === '/market') return 'markets';
     if (location.pathname === '/portfolio') return 'portfolio';
-    return 'trade';
+    if (location.pathname === '/trade') return 'trade';
+    return 'markets';
   });
-
-  // Synced active view with browser URL history
-  useEffect(() => {
-    if (location.pathname === '/market') setActiveTab('markets');
-    else if (location.pathname === '/portfolio') setActiveTab('portfolio');
-    else setActiveTab('trade');
-  }, [location.pathname]);
 
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
-    if (tabName === 'markets') navigate('/market');
-    else if (tabName === 'portfolio') navigate('/portfolio');
-    else navigate('/');
   };
 
   // State to manage Market selection overlay/subview inside Markets tab
@@ -313,7 +304,7 @@ export default function MobileTrade() {
                 display: 'flex', 
                 flexDirection: 'column', 
                 backgroundColor: 'var(--bg-dark)',
-                padding: '4px',
+                padding: '8px',
                 gap: '2px'
               }}>
                 
@@ -371,7 +362,7 @@ export default function MobileTrade() {
             display: 'flex', 
             flexDirection: 'column', 
             backgroundColor: 'var(--bg-dark)', 
-            padding: '4px', 
+            padding: '8px', 
             width: '100%' 
           }}>
             {/* Unified Trade TopNav + Order Panel (One Single Div!) */}
@@ -409,7 +400,7 @@ export default function MobileTrade() {
             display: 'flex', 
             flexDirection: 'column', 
             backgroundColor: 'var(--bg-dark)', 
-            padding: '4px', 
+            padding: '8px', 
             width: '100%',
             overflow: 'hidden'
           }}>

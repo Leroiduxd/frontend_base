@@ -364,3 +364,53 @@ body {
 .stat-value.down {
   color: #ef4444;
 }
+
+/* Premium Clean Independent Chart Buttons */
+.chart-action-btn {
+  background: transparent;
+  color: var(--text-grey);
+  border: none;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.chart-action-btn:hover {
+  color: var(--text-dark);
+  background: transparent;
+}
+
+.chart-action-btn.active {
+  background: transparent;
+  color: var(--gold);
+}
+
+.chart-action-btn svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.chart-action-btn:hover svg {
+  transform: scale(1.12);
+}
+
+.chart-action-btn.active svg {
+  filter: drop-shadow(0 0 4px rgba(200, 169, 126, 0.4));
+}
+
+/* For small screens, ensure touch targets are comfortable */
+@media (max-width: 768px) {
+  .chart-action-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .chart-action-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+}
