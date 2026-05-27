@@ -17,9 +17,15 @@ export default function MarketsPromo() {
     { name: 'Others', percentage: 10, value: '$0.90B', color: '#6b7280', dashArray: '10 100', offset: '-90' },
   ];
 
-  // Vault Stats
+  // Vault Stats - Enriched with PnL & more metrics
   const stats = {
     tvl: '$45,210,845',
+    poolCap: '$50,000,000',
+    currentPnL: '+$412,850', // Unrealized PnL
+    realizedPnL: '+$3,429,504', // Realized PnL
+    volume24h: '$24,850,192',
+    fees24h: '$42,850',
+    stakingApy: '18.42%',
     cumulativeVolume: '$184.25B',
     cumulativeOi: '$8.90B',
     averageLeverage: '18.5x',
@@ -181,7 +187,8 @@ export default function MarketsPromo() {
         </div>
       </div>
 
-      <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.03)' }} />
+      {/* Dividers with horizontal margins so they don't touch the borders */}
+      <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.03)', margin: '6px 16px' }} />
 
       {/* Section 2: Vault Financial Metrics */}
       <div>
@@ -189,6 +196,22 @@ export default function MarketsPromo() {
         <div className="stat-row-item">
           <span style={{ color: themeTextMuted }}>Total Value Locked</span>
           <span style={{ color: goldAccent, fontWeight: 'bold' }}>{stats.tvl}</span>
+        </div>
+        <div className="stat-row-item">
+          <span style={{ color: themeTextMuted }}>Pool Capacity</span>
+          <span style={{ color: themeText }}>90.4% / {stats.poolCap}</span>
+        </div>
+        <div className="stat-row-item">
+          <span style={{ color: themeTextMuted }}>Current Vault PnL (Unrealized)</span>
+          <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>{stats.currentPnL}</span>
+        </div>
+        <div className="stat-row-item">
+          <span style={{ color: themeTextMuted }}>Total Realized PnL</span>
+          <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>{stats.realizedPnL}</span>
+        </div>
+        <div className="stat-row-item">
+          <span style={{ color: themeTextMuted }}>24h Volume / Fees</span>
+          <span style={{ color: themeText }}>{stats.volume24h} / {stats.fees24h}</span>
         </div>
         <div className="stat-row-item">
           <span style={{ color: themeTextMuted }}>Cumulative Volume</span>
@@ -199,12 +222,16 @@ export default function MarketsPromo() {
           <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>{stats.cumulativeFees}</span>
         </div>
         <div className="stat-row-item">
+          <span style={{ color: themeTextMuted }}>Staking APY (Vault)</span>
+          <span style={{ color: goldAccent, fontWeight: 'bold' }}>{stats.stakingApy}</span>
+        </div>
+        <div className="stat-row-item">
           <span style={{ color: themeTextMuted }}>Vault Utilization</span>
           <span style={{ color: themeText }}>{stats.utilizationRate}</span>
         </div>
       </div>
 
-      <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.03)' }} />
+      <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.03)', margin: '6px 16px' }} />
 
       {/* Section 3: Long / Short Balance */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
@@ -223,7 +250,7 @@ export default function MarketsPromo() {
         </div>
       </div>
 
-      <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.03)' }} />
+      <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.03)', margin: '6px 16px' }} />
 
       {/* Section 4: Trading Activity */}
       <div>
@@ -246,7 +273,7 @@ export default function MarketsPromo() {
         </div>
       </div>
 
-      <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.03)' }} />
+      <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.03)', margin: '6px 16px' }} />
 
       {/* Section 5: Risk & Health */}
       <div>

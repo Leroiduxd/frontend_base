@@ -36,7 +36,7 @@ export default function MarketStats() {
       <div style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '10px',
+        gap: '8px',
         flex: 1,
         justifyContent: 'center',
         paddingTop: '6px'
@@ -47,7 +47,8 @@ export default function MarketStats() {
             justifyContent: 'space-between',
             alignItems: 'center',
             fontSize: '11px',
-            fontFamily: 'Source Code Pro, monospace'
+            fontFamily: 'Source Code Pro, monospace',
+            minHeight: '30px' // Match RecentlyListed logo height spacing
           }}>
             <span style={{ color: 'var(--text-grey)', fontSize: '10px', letterSpacing: '0.04em' }}>{s.label}</span>
             <span style={{ fontWeight: 'bold', color: s.color }}>{s.value}</span>

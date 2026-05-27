@@ -43,7 +43,7 @@ export default function TopTraders() {
       <div style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '10px',
+        gap: '8px',
         flex: 1,
         justifyContent: 'center',
         paddingTop: '6px'
@@ -54,7 +54,8 @@ export default function TopTraders() {
             justifyContent: 'space-between',
             alignItems: 'center',
             fontSize: '11px',
-            fontFamily: 'Source Code Pro, monospace'
+            fontFamily: 'Source Code Pro, monospace',
+            minHeight: '30px' // Match RecentlyListed logo height spacing
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{

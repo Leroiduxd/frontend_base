@@ -42,6 +42,28 @@ body.light-mode {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: rgba(200, 169, 126, 0.18) !important;
+}
+
+/* Custom golden focus outline instead of browser default blue */
+*:focus-visible {
+  outline: 2px solid var(--gold) !important;
+  outline-offset: 1px;
+}
+
+input:focus, 
+select:focus, 
+textarea:focus, 
+button:focus {
+  outline: none !important;
+}
+
+input:focus-visible, 
+select:focus-visible, 
+textarea:focus-visible, 
+button:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(200, 169, 126, 0.35) !important;
 }
 
 #root {
