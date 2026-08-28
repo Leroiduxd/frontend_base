@@ -77,7 +77,7 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
 
   const coreAddress = isMainnet
     ? (import.meta.env.VITE_BROKEX_CORE_MAINNET || '0x0000000000000000000000000000000000000000')
-    : (import.meta.env.VITE_BROKEX_CORE_TESTNET || '0x857d46e2e571f02180deE41A305e8a1007AE473E');
+    : (import.meta.env.VITE_BROKEX_CORE_TESTNET || '0x171386dEaBFdd281c29345F12996bA35f1Aed0d2');
 
   const usdcAddress = isMainnet
     ? (import.meta.env.VITE_USDC_MAINNET || '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913')

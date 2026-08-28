@@ -20,7 +20,7 @@ export default function MobilePositions({ onManagePosition, isFullPage = false }
 
   const coreAddress = isMainnet
     ? (import.meta.env.VITE_BROKEX_CORE_MAINNET || '0x0000000000000000000000000000000000000000')
-    : (import.meta.env.VITE_BROKEX_CORE_TESTNET || '0x857d46e2e571f02180deE41A305e8a1007AE473E');
+    : (import.meta.env.VITE_BROKEX_CORE_TESTNET || '0x171386dEaBFdd281c29345F12996bA35f1Aed0d2');
 
   // Polling des trades du trader connecté
   useEffect(() => {
