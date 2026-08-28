@@ -191,6 +191,11 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
       if (openConnectModal) openConnectModal();
       return;
     }
+    if (!coreAddress || coreAddress === '0x0000000000000000000000000000000000000000') {
+      showNotification("Brokex contracts are only deployed on Base Sepolia Testnet. Please switch to Testnet.", "error");
+      if (setNetwork) setNetwork('testnet');
+      return;
+    }
     setIsSubmitting(true);
     showNotification("Requesting USDC token approval in wallet...", "info", null, 4000, "USDC");
     try {
