@@ -4,8 +4,8 @@ import { api } from '../services/api';
 import { useMarketData } from '../context/MarketDataContext';
 
 const goldAccent = '#BC8961';
-const buyColor = '#3b82f6'; // blue
-const sellColor = '#ef4444'; // red
+const buyColor = 'var(--color-blue)'; // blue
+const sellColor = 'var(--color-red)'; // red
 
 export default function OrderBook() {
   const { network } = useMarketData();
@@ -334,8 +334,8 @@ export default function OrderBook() {
                 fontWeight: 'bold',
                 padding: '1px 5px',
                 borderRadius: '3px',
-                background: hoveredTrade.isLong ? 'rgba(59, 130, 246, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-                color: hoveredTrade.isLong ? '#3b82f6' : '#ef4444'
+                background: hoveredTrade.isLong ? 'var(--color-blue-bg)' : 'var(--color-red-bg)',
+                color: hoveredTrade.isLong ? 'var(--color-blue)' : 'var(--color-red)'
               }}>
                 {hoveredTrade.side} {hoveredTrade.leverage}
               </span>

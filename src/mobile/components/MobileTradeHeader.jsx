@@ -60,7 +60,7 @@ export default function MobileTradeHeader({ activeMarketInfo, setIsMarketSelecto
             <span style={{ 
               fontSize: '10.5px', 
               fontWeight: 'bold', 
-              color: isPositive ? '#3b82f6' : '#ef4444', 
+              color: isPositive ? 'var(--color-blue)' : 'var(--color-red)', 
               fontFamily: 'Source Code Pro, monospace' 
             }}>
               {displayChange}

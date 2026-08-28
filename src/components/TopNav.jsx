@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useMarketData } from '../context/MarketDataContext';
 
 export default function TopNav({ onOpenMarket }) {
@@ -22,11 +22,19 @@ export default function TopNav({ onOpenMarket }) {
     protocolInfo
   } = useMarketData();
 
+  const statsScrollRef = useRef(null);
+
+  const handleWheel = (e) => {
+    if (statsScrollRef.current) {
+      statsScrollRef.current.scrollLeft += e.deltaY;
+    }
+  };
+
   const ticker = pythMetadata?.display_symbol || protocolInfo?.assets?.[0]?.pythMetadata?.display_symbol || 'XAU/USD';
   const description = pythMetadata?.description || 'Gold / US Dollar';
   const isPositiveChange = priceChangePercent24h >= 0;
-  // Positive => Blue (#3b82f6), Negative => Red (#ef4444)
-  const changeColor = isPositiveChange ? '#3b82f6' : '#ef4444';
+  // Positive => Blue (var(--color-blue)), Negative => Red (var(--color-red))
+  const changeColor = isPositiveChange ? 'var(--color-blue)' : 'var(--color-red)';
   const goldAccent = '#BC8961';
 
   return (
@@ -43,35 +51,31 @@ export default function TopNav({ onOpenMarket }) {
               background: goldAccent,
               color: '#000',
               fontWeight: 'bold',
-              fontSize: '8.5px',
-              fontFamily: 'Source Code Pro, monospace',
+              fontSize: '9px',
               width: '32px',
               height: '32px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              letterSpacing: '0.02em',
-              flexShrink: 0
+              fontFamily: 'Source Code Pro, monospace'
             }}>
               [XAU]
             </div>
             <div className="ticker-info">
-              <span className="ticker-name">{ticker}</span>
-              <span className="ticker-label" style={{ fontSize: '10px', color: 'var(--text-grey)', fontWeight: 'normal' }}>Gold / US Dollar</span>
+              <span className="ticker-name" style={{ fontWeight: 'bold' }}>{ticker}</span>
+              <span className="ticker-desc">{description}</span>
             </div>
           </div>
 
-          <div style={{ width: '1px', height: '24px', background: 'var(--border-color)', flexShrink: 0 }}></div>
-
-          {/* 1. Live Price (Fixed, does not move on scroll) */}
+          {/* Current Live Price */}
           <div className="stat-item" style={{ flexShrink: 0 }}>
             <span className="stat-label">Price</span>
-            <span className="stat-value" style={{ fontSize: '14px', fontWeight: 'bold' }}>${goldPriceFormatted}</span>
+            <span className="stat-value" style={{ fontSize: '15px', fontWeight: 'bold', fontFamily: 'Source Code Pro, monospace', color: 'var(--text-dark)' }}>
+              ${goldPriceFormatted}
+            </span>
           </div>
 
-          <div style={{ width: '1px', height: '24px', background: 'var(--border-color)', flexShrink: 0 }}></div>
-
-          {/* 2. Spread vs Price */}
+          {/* Spread */}
           <div className="stat-item" style={{ flexShrink: 0 }}>
             <span className="stat-label">Spread</span>
             <span className="stat-value" style={{ color: goldAccent, fontFamily: 'Source Code Pro, monospace' }}>
@@ -79,30 +83,33 @@ export default function TopNav({ onOpenMarket }) {
             </span>
           </div>
 
-          <div style={{ width: '1px', height: '24px', background: 'var(--border-color)', flexShrink: 0 }}></div>
-
-          {/* 3. 24h Change (Blue if positive, Red if negative) */}
+          {/* 24h Change (Live positive/negative) */}
           <div className="stat-item" style={{ flexShrink: 0 }}>
             <span className="stat-label">24h Change</span>
-            <span className="stat-value" style={{ color: changeColor, fontWeight: '600' }}>
+            <span className="stat-value" style={{ color: changeColor, fontWeight: '600', fontFamily: 'Source Code Pro, monospace' }}>
               {changeFormatted}
             </span>
           </div>
-
-          <div style={{ width: '1px', height: '24px', background: 'var(--border-color)', flexShrink: 0 }}></div>
         </div>
 
-        {/* SCROLLABLE RIGHT SIDE: Remaining Stats with 24h High/Low at the far right */}
-        <div className="scrollable-stats" style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '20px',
-          overflowX: 'auto',
-          flexGrow: 1,
-          padding: '0 20px 0 10px',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none'
-        }}>
+        {/* Separator between Fixed Header and Scrollable Statistics */}
+        <div style={{ width: '1px', height: '32px', background: 'var(--border-color)', flexShrink: 0, margin: '0 15px 0 0' }}></div>
+
+        {/* SCROLLABLE STATS RIGHT SIDE (Wheel Scroll Enabled) */}
+        <div 
+          ref={statsScrollRef}
+          onWheel={handleWheel}
+          className="scrollable-stats"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '20px',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            flex: 1
+          }}
+        >
           <style>{`
             .scrollable-stats::-webkit-scrollbar {
               display: none;
@@ -116,11 +123,11 @@ export default function TopNav({ onOpenMarket }) {
           <div style={{ display: 'flex', gap: '15px' }}>
             <div className="stat-item">
               <span className="stat-label">Borrow Long/h</span>
-              <span className="stat-value" style={{ color: '#3b82f6', fontFamily: 'Source Code Pro, monospace' }}>{longBorrowRateFormatted}</span>
+              <span className="stat-value" style={{ color: 'var(--color-blue)', fontFamily: 'Source Code Pro, monospace' }}>{longBorrowRateFormatted}</span>
             </div>
             <div className="stat-item">
               <span className="stat-label">Borrow Short/h</span>
-              <span className="stat-value" style={{ color: '#ef4444', fontFamily: 'Source Code Pro, monospace' }}>{shortBorrowRateFormatted}</span>
+              <span className="stat-value" style={{ color: 'var(--color-red)', fontFamily: 'Source Code Pro, monospace' }}>{shortBorrowRateFormatted}</span>
             </div>
           </div>
 
@@ -132,17 +139,17 @@ export default function TopNav({ onOpenMarket }) {
             <div className="stat-item">
               <span className="stat-label">Open Interest</span>
               <span className="stat-value" style={{ fontSize: '11px', fontFamily: 'Source Code Pro, monospace' }}>
-                <span style={{ color: '#3b82f6' }}>{oiLongFormatted}</span>
+                <span style={{ color: 'var(--color-blue)' }}>{oiLongFormatted}</span>
                 <span style={{ color: 'var(--text-grey)', margin: '0 4px' }}>/</span>
-                <span style={{ color: '#ef4444' }}>{oiShortFormatted}</span>
+                <span style={{ color: 'var(--color-red)' }}>{oiShortFormatted}</span>
               </span>
             </div>
             <div className="stat-item">
               <span className="stat-label">L/S Ratio</span>
               <span className="stat-value">
-                <span style={{ color: '#3b82f6' }}>{longRatio}%</span>
+                <span style={{ color: 'var(--color-blue)' }}>{longRatio}%</span>
                 <span style={{ color: 'var(--text-grey)', margin: '0 4px' }}>/</span>
-                <span style={{ color: '#ef4444' }}>{100 - longRatio}%</span>
+                <span style={{ color: 'var(--color-red)' }}>{100 - longRatio}%</span>
               </span>
             </div>
           </div>
@@ -159,9 +166,9 @@ export default function TopNav({ onOpenMarket }) {
             <div className="stat-item">
               <span className="stat-label">Vol (L / S)</span>
               <span className="stat-value" style={{ fontSize: '11px', fontFamily: 'Source Code Pro, monospace' }}>
-                <span style={{ color: '#3b82f6' }}>{longVolFormatted}</span>
+                <span style={{ color: 'var(--color-blue)' }}>{longVolFormatted}</span>
                 <span style={{ color: 'var(--text-grey)', margin: '0 4px' }}>/</span>
-                <span style={{ color: '#ef4444' }}>{shortVolFormatted}</span>
+                <span style={{ color: 'var(--color-red)' }}>{shortVolFormatted}</span>
               </span>
             </div>
           </div>

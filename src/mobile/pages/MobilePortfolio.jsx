@@ -245,7 +245,7 @@ export default function MobilePortfolio() {
         {/* Total Profit Earned Display */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderBottom: '1px solid rgba(255, 255, 255, 0.04)', paddingBottom: '10px' }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'Source Code Pro, monospace', color: '#3b82f6' }}>
+            <span style={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'Source Code Pro, monospace', color: 'var(--color-blue)' }}>
               +${totalEarnedUSD}
             </span>
             <span style={{ fontSize: '9px', color: 'var(--text-grey)', marginTop: '2px' }}>
@@ -581,7 +581,7 @@ export default function MobilePortfolio() {
                         fontSize: '12px',
                         fontWeight: 'bold',
                         fontFamily: 'Source Code Pro, monospace',
-                        color: '#3b82f6'
+                        color: 'var(--color-blue)'
                       }}>
                         +${amountUSD} USDC
                       </span>

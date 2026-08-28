@@ -9,10 +9,10 @@ export { MobileTradeHeader, MobilePositions, MobileOrderPanel };
 // Common Accent Colors (Theme-aware via CSS variables)
 const goldAccent = '#BC8961';
 const goldAccentLight = 'rgba(188, 137, 97, 0.15)';
-const buyColor = '#3b82f6'; // blue
-const sellColor = '#ef4444'; // red
-const buyColorBg = 'rgba(59, 130, 246, 0.1)';
-const sellColorBg = 'rgba(239, 68, 68, 0.1)';
+const buyColor = 'var(--color-blue)'; // blue
+const sellColor = 'var(--color-red)'; // red
+const buyColorBg = 'var(--color-blue-bg)';
+const sellColorBg = 'var(--color-red-bg)';
 
 // ----------------------------------------------------
 // 0.5. MOBILE TOPNAV (TradeHeader + Scrollable Metrics Row)
@@ -78,14 +78,14 @@ export function MobileTopNav({ activeMarketInfo, setIsMarketSelectorOpen }) {
         {/* Borrow Long / Borrow Short */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>Borrow Long/h</span>
-          <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold', color: '#3b82f6' }}>
+          <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold', color: 'var(--color-blue)' }}>
             {longBorrowRateFormatted}
           </span>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>Borrow Short/h</span>
-          <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold', color: '#ef4444' }}>
+          <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold', color: 'var(--color-red)' }}>
             {shortBorrowRateFormatted}
           </span>
         </div>
@@ -96,9 +96,9 @@ export function MobileTopNav({ activeMarketInfo, setIsMarketSelectorOpen }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>Open Interest (L / S)</span>
           <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold' }}>
-            <span style={{ color: '#3b82f6' }}>{oiLongFormatted}</span>
+            <span style={{ color: 'var(--color-blue)' }}>{oiLongFormatted}</span>
             <span style={{ color: 'var(--text-grey)', margin: '0 3px' }}>/</span>
-            <span style={{ color: '#ef4444' }}>{oiShortFormatted}</span>
+            <span style={{ color: 'var(--color-red)' }}>{oiShortFormatted}</span>
           </span>
         </div>
 
@@ -106,9 +106,9 @@ export function MobileTopNav({ activeMarketInfo, setIsMarketSelectorOpen }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>L/S Ratio</span>
           <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold' }}>
-            <span style={{ color: '#3b82f6' }}>{longRatio}%</span>
+            <span style={{ color: 'var(--color-blue)' }}>{longRatio}%</span>
             <span style={{ color: 'var(--text-grey)', margin: '0 3px' }}>/</span>
-            <span style={{ color: '#ef4444' }}>{100 - longRatio}%</span>
+            <span style={{ color: 'var(--color-red)' }}>{100 - longRatio}%</span>
           </span>
         </div>
 
@@ -125,9 +125,9 @@ export function MobileTopNav({ activeMarketInfo, setIsMarketSelectorOpen }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>Vol (L / S)</span>
           <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold' }}>
-            <span style={{ color: '#3b82f6' }}>{longVolFormatted}</span>
+            <span style={{ color: 'var(--color-blue)' }}>{longVolFormatted}</span>
             <span style={{ color: 'var(--text-grey)', margin: '0 3px' }}>/</span>
-            <span style={{ color: '#ef4444' }}>{shortVolFormatted}</span>
+            <span style={{ color: 'var(--color-red)' }}>{shortVolFormatted}</span>
           </span>
         </div>
 
@@ -368,8 +368,8 @@ export function MobilePositionManager({ isOpen, onClose, position, initialTab = 
               padding: '2px 6px',
               borderRadius: '4px',
               fontWeight: 'bold',
-              background: position.side === 'Long' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-              color: position.side === 'Long' ? '#3b82f6' : '#ef4444'
+              background: position.side === 'Long' ? 'var(--color-blue-bg)' : 'var(--color-red-bg)',
+              color: position.side === 'Long' ? 'var(--color-blue)' : 'var(--color-red)'
             }}>
               {position.side.toUpperCase()}
             </span>
@@ -405,7 +405,7 @@ export function MobilePositionManager({ isOpen, onClose, position, initialTab = 
               fontSize: '15px', 
               fontWeight: 'bold', 
               fontFamily: 'Source Code Pro',
-              color: position.pnlUsd.startsWith('+') ? '#3b82f6' : '#ef4444' 
+              color: position.pnlUsd.startsWith('+') ? 'var(--color-blue)' : 'var(--color-red)' 
             }}>
               {position.pnlUsd} <span style={{ fontSize: '11px', fontWeight: '500' }}>({position.pnlPct})</span>
             </span>

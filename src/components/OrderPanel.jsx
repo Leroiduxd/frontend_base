@@ -381,10 +381,10 @@ export default function OrderPanel() {
   const themeBorder = 'var(--border-color)';
   const themeText = 'var(--text-dark)';
   const themeTextMuted = 'var(--text-grey)';
-  const buyColor = '#3b82f6'; // blue
-  const sellColor = '#ef4444'; // red
-  const buyColorBg = 'rgba(59, 130, 246, 0.1)';
-  const sellColorBg = 'rgba(239, 68, 68, 0.1)';
+  const buyColor = 'var(--color-blue)'; // blue
+  const sellColor = 'var(--color-red)'; // red
+  const buyColorBg = 'var(--color-blue-bg)';
+  const sellColorBg = 'var(--color-red-bg)';
 
   return (
     <div className="order panel" style={{
@@ -974,7 +974,7 @@ export default function OrderPanel() {
 
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: themeTextMuted, borderBottom: `1px dashed ${themeBorder}` }}>Available Liquidity</span>
-            <span style={{ fontSize: '11px', fontFamily: 'Source Code Pro, monospace', fontWeight: 600, color: side === 'buy' ? '#3b82f6' : '#ef4444' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'Source Code Pro, monospace', fontWeight: 600, color: side === 'buy' ? buyColor : sellColor }}>
               {side === 'buy' ? availLiqLongFormatted : availLiqShortFormatted}
             </span>
           </div>

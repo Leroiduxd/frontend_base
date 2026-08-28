@@ -348,7 +348,7 @@ export default function Positions() {
       </div>
 
       <div style={{ flex: 1, overflowX: 'auto', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ width: '100%', minWidth: '700px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ width: '100%', minWidth: '850px', display: 'flex', flexDirection: 'column' }}>
           {/* Table Header */}
           <div style={{
             display: 'flex',
@@ -362,16 +362,20 @@ export default function Positions() {
             alignItems: 'center'
           }}>
             <div style={{ width: '60px' }}>ID</div>
-            <div style={{ width: '140px' }}>Asset</div>
+            <div style={{ width: '135px' }}>Asset</div>
             <div style={{ flex: 1 }}>Size</div>
-            <div style={{ flex: 1 }}>Lev.</div>
+            <div style={{ flex: 0.8 }}>Lev.</div>
             <div style={{ flex: 1 }}>Coll.</div>
+            {activeTab === 'open' && <div style={{ flex: 1 }}>Entry Price</div>}
+            {activeTab === 'open' && <div style={{ flex: 1 }}>Market Price</div>}
+            {activeTab === 'orders' && <div style={{ flex: 1 }}>Order Price</div>}
+            {activeTab === 'history' && <div style={{ flex: 1 }}>Entry Price</div>}
+            {activeTab === 'history' && <div style={{ flex: 1 }}>Close Price</div>}
             <div style={{ flex: 1 }}>{activeTab === 'history' ? 'Status' : 'Liq. Price'}</div>
-            <div style={{ flex: 1 }}>SL</div>
-            <div style={{ flex: 1 }}>TP</div>
-            <div style={{ flex: 1 }}>{activeTab === 'orders' ? 'Order Price' : activeTab === 'history' ? 'Close Price' : 'Market Price'}</div>
-            <div style={{ flex: 1.5, textAlign: 'right' }}>{activeTab === 'orders' ? 'Status' : 'PnL (USD/%)'}</div>
-            {activeTab !== 'history' && <div style={{ width: '80px', textAlign: 'right' }}>Action</div>}
+            <div style={{ flex: 0.8 }}>SL</div>
+            <div style={{ flex: 0.8 }}>TP</div>
+            <div style={{ flex: 1.4, textAlign: 'right' }}>{activeTab === 'orders' ? 'Status' : 'PnL (USD/%)'}</div>
+            {activeTab !== 'history' && <div style={{ width: '75px', textAlign: 'right' }}>Action</div>}
           </div>
 
           {/* Empty State when Wallet not connected */}
@@ -398,34 +402,35 @@ export default function Positions() {
               height: '32px'
             }} className="position-row">
               <div style={{ width: '60px', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{pos.id}</div>
-              <div style={{ width: '140px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '135px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ minWidth: '65px' }}>{pos.asset}</span>
-                <span style={{ fontSize: '7px', padding: '1px 4px', borderRadius: '3px', background: pos.isLong ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: pos.isLong ? '#3b82f6' : '#ef4444', fontWeight: 'bold' }}>{pos.side.toUpperCase()}</span>
+                <span style={{ fontSize: '7px', padding: '1px 4px', borderRadius: '3px', background: pos.isLong ? 'var(--color-blue-bg)' : 'var(--color-red-bg)', color: pos.isLong ? 'var(--color-blue)' : 'var(--color-red)', fontWeight: 'bold' }}>{pos.side.toUpperCase()}</span>
               </div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: '500' }}>{pos.size}</div>
-              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: '#BC8961', fontWeight: '600' }}>{pos.leverage}</div>
+              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: '#BC8961', fontWeight: '600' }}>{pos.leverage}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {pos.collateral}
               </div>
-              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: '#ef4444' }}>{pos.liqPrice}</div>
-              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-dark)' }}>{pos.entryPrice}</div>
+              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{pos.marketPrice}</div>
+              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--color-red)' }}>{pos.liqPrice}</div>
+              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {pos.sl}
               </div>
-              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {pos.tp}
               </div>
-              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{pos.marketPrice}</div>
-              <div style={{ flex: 1.5, textAlign: 'right', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: 'bold', color: pos.isProfit ? '#3b82f6' : '#ef4444' }}>
+              <div style={{ flex: 1.4, textAlign: 'right', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: 'bold', color: pos.isProfit ? 'var(--color-blue)' : 'var(--color-red)' }}>
                 {pos.pnlUsd} <span style={{ fontSize: '9px', opacity: 0.8 }}>({pos.pnlPct})</span>
               </div>
-              <div style={{ width: '80px', textAlign: 'right' }}>
+              <div style={{ width: '75px', textAlign: 'right' }}>
                 <button
                   onClick={() => handleCloseMarket(pos.tradeId)}
                   disabled={actionLoadingId === `close-${pos.tradeId}`}
                   style={{
                     background: 'transparent',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                    color: '#ef4444',
+                    border: '1px solid var(--color-red-glow)',
+                    color: 'var(--color-red)',
                     fontSize: '9px',
                     padding: '2px 6px',
                     borderRadius: '3px',
@@ -457,19 +462,19 @@ export default function Positions() {
               height: '32px'
             }} className="position-row">
               <div style={{ width: '60px', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{order.id}</div>
-              <div style={{ width: '140px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '135px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ minWidth: '65px' }}>{order.asset}</span>
-                <span style={{ fontSize: '7px', padding: '1px 4px', borderRadius: '3px', background: order.isLong ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: order.isLong ? '#3b82f6' : '#ef4444', fontWeight: 'bold' }}>{order.side.toUpperCase()}</span>
+                <span style={{ fontSize: '7px', padding: '1px 4px', borderRadius: '3px', background: order.isLong ? 'var(--color-blue-bg)' : 'var(--color-red-bg)', color: order.isLong ? 'var(--color-blue)' : 'var(--color-red)', fontWeight: 'bold' }}>{order.side.toUpperCase()}</span>
               </div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: '500' }}>{order.size}</div>
-              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: '#BC8961', fontWeight: '600' }}>{order.leverage}</div>
+              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: '#BC8961', fontWeight: '600' }}>{order.leverage}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{order.collateral}</div>
-              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{order.liqPrice}</div>
-              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{order.sl}</div>
-              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{order.tp}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{order.orderPrice}</div>
-              <div style={{ flex: 1.5, textAlign: 'right', fontWeight: 'bold', color: '#BC8961' }}>{order.status}</div>
-              <div style={{ width: '80px', textAlign: 'right' }}>
+              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--color-red)' }}>{order.liqPrice}</div>
+              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{order.sl}</div>
+              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{order.tp}</div>
+              <div style={{ flex: 1.4, textAlign: 'right', fontWeight: 'bold', color: '#BC8961' }}>{order.status}</div>
+              <div style={{ width: '75px', textAlign: 'right' }}>
                 <button
                   onClick={() => handleCancelOrder(order.tradeId)}
                   disabled={actionLoadingId === `cancel-${order.tradeId}`}
@@ -508,18 +513,19 @@ export default function Positions() {
               height: '32px'
             }} className="position-row">
               <div style={{ width: '60px', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{hist.id}</div>
-              <div style={{ width: '140px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '135px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ minWidth: '65px' }}>{hist.asset}</span>
-                <span style={{ fontSize: '7px', padding: '1px 4px', borderRadius: '3px', background: hist.isLong ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: hist.isLong ? '#3b82f6' : '#ef4444', fontWeight: 'bold' }}>{hist.side.toUpperCase()}</span>
+                <span style={{ fontSize: '7px', padding: '1px 4px', borderRadius: '3px', background: hist.isLong ? 'var(--color-blue-bg)' : 'var(--color-red-bg)', color: hist.isLong ? 'var(--color-blue)' : 'var(--color-red)', fontWeight: 'bold' }}>{hist.side.toUpperCase()}</span>
               </div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: '500' }}>{hist.size}</div>
-              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: '#BC8961', fontWeight: '600' }}>{hist.leverage}</div>
+              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: '#BC8961', fontWeight: '600' }}>{hist.leverage}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{hist.collateral}</div>
-              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: hist.status === 'CLOSED' ? '#3b82f6' : 'var(--text-grey)', fontWeight: 600 }}>{hist.status}</div>
-              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{hist.sl}</div>
-              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{hist.tp}</div>
+              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{hist.entryPrice}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{hist.closePrice}</div>
-              <div style={{ flex: 1.5, textAlign: 'right', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: 'bold', color: hist.isProfit ? '#3b82f6' : '#ef4444' }}>
+              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: hist.status === 'CLOSED' ? 'var(--color-blue)' : 'var(--text-grey)', fontWeight: 600 }}>{hist.status}</div>
+              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{hist.sl}</div>
+              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{hist.tp}</div>
+              <div style={{ flex: 1.4, textAlign: 'right', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: 'bold', color: hist.isProfit ? 'var(--color-blue)' : 'var(--color-red)' }}>
                 {hist.pnlUsd} <span style={{ fontSize: '9px', opacity: 0.8 }}>({hist.pnlPct})</span>
               </div>
             </div>

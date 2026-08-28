@@ -15,6 +15,32 @@ const TIMEFRAME_TO_RESOLUTION = {
   '1w': '10080'
 };
 
+const getThemeConfig = (isLight) => ({
+  layout: {
+    background: { type: ColorType.Solid, color: 'transparent' },
+    textColor: isLight ? '#475569' : '#888888',
+    fontSize: 10,
+    fontFamily: "'Source Code Pro', monospace",
+  },
+  grid: {
+    vertLines: { color: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.03)' },
+    horzLines: { color: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.03)' },
+  },
+  crosshair: {
+    mode: 0,
+    vertLine: { color: isLight ? '#b08d57' : '#c8a97e', width: 1, labelBackgroundColor: isLight ? '#b08d57' : '#c8a97e' },
+    horzLine: { color: isLight ? '#b08d57' : '#c8a97e', width: 1, labelBackgroundColor: isLight ? '#b08d57' : '#c8a97e' },
+  },
+  rightPriceScale: {
+    borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+  },
+  timeScale: {
+    borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+    timeVisible: true,
+    secondsVisible: false,
+  },
+});
+
 export default function Chart() {
   const { goldPrice, network } = useMarketData();
   const chartContainerRef = useRef(null);
@@ -65,35 +91,23 @@ export default function Chart() {
     if (!chartContainerRef.current) return;
 
     try {
+      const isLight = document.body.classList.contains('light-mode');
+      const themeConfig = getThemeConfig(isLight);
+
       const chart = createChart(chartContainerRef.current, {
-        layout: {
-          background: { type: ColorType.Solid, color: 'transparent' },
-          textColor: '#888',
-          fontSize: 10,
-          fontFamily: "'Source Code Pro', monospace",
-        },
-        grid: {
-          vertLines: { color: 'rgba(255,255,255,0.02)' },
-          horzLines: { color: 'rgba(255,255,255,0.02)' },
-        },
-        crosshair: {
-          mode: 0,
-          vertLine: { color: '#c8a97e', width: 1, labelBackgroundColor: '#c8a97e' },
-          horzLine: { color: '#c8a97e', width: 1, labelBackgroundColor: '#c8a97e' },
-        },
-        rightPriceScale: {
-          borderColor: 'rgba(255,255,255,0.05)',
-        },
-        timeScale: {
-          borderColor: 'rgba(255,255,255,0.05)',
-          timeVisible: true,
-          secondsVisible: false,
-        },
+        ...themeConfig,
         width: chartContainerRef.current.clientWidth,
         height: chartContainerRef.current.clientHeight,
       });
 
       setChartInstance(chart);
+
+      // Listen to theme change (light-mode toggle on body)
+      const themeObserver = new MutationObserver(() => {
+        const currentIsLight = document.body.classList.contains('light-mode');
+        chart.applyOptions(getThemeConfig(currentIsLight));
+      });
+      themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
       const resizeObserver = new ResizeObserver(entries => {
         if (entries[0] && chart) {
@@ -105,6 +119,7 @@ export default function Chart() {
       resizeObserver.observe(chartContainerRef.current);
 
       return () => {
+        themeObserver.disconnect();
         resizeObserver.disconnect();
         chart.remove();
       };
@@ -141,13 +156,16 @@ export default function Chart() {
         }
 
         let series;
+        const upColor = getComputedStyle(document.documentElement).getPropertyValue('--color-blue').trim() || '#3b82f6';
+        const downColor = getComputedStyle(document.documentElement).getPropertyValue('--color-red').trim() || '#ef4444';
+
         if (isCandleType) {
           series = chartInstance.addSeries(CandlestickSeries, {
-            upColor: '#3b82f6',
-            downColor: '#ef4444',
+            upColor,
+            downColor,
             borderVisible: false,
-            wickUpColor: '#3b82f6',
-            wickDownColor: '#ef4444',
+            wickUpColor: upColor,
+            wickDownColor: downColor,
           });
         } else {
           series = chartInstance.addSeries(AreaSeries, {

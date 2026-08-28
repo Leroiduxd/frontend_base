@@ -244,7 +244,7 @@ export default function MobileLayout({ children, disablePadding = false }) {
                 <span style={{ color: 'var(--text-grey)' }}>[</span>
                 <span style={{ color: 'var(--text-dark)' }}>{item.symbol}</span>
                 <span style={{ color: 'var(--text-grey)' }}>]</span>
-                <span style={{ color: item.isUp ? '#3b82f6' : '#ef4444', marginLeft: '3px' }}>{item.change}</span>
+                <span style={{ color: item.isUp ? 'var(--color-blue)' : 'var(--color-red)', marginLeft: '3px' }}>{item.change}</span>
               </div>
             ))}
           </div>

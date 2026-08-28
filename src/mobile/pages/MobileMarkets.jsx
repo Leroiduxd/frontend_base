@@ -202,7 +202,7 @@ export default function MobileMarkets() {
                   fontSize: '9.5px',
                   fontWeight: 'bold',
                   fontFamily: 'Source Code Pro, monospace',
-                  color: isPositive ? '#3b82f6' : '#ef4444'
+                  color: isPositive ? 'var(--color-blue)' : 'var(--color-red)'
                 }}>
                   {m.change}
                 </span>

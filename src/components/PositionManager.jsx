@@ -196,7 +196,7 @@ export default function PositionManager({ position, isOpen, onClose, onCloseMark
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--text-dark)' }}>{position.asset || 'XAU/USD'}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '10px', padding: '1px 4px', borderRadius: '3px', background: (position.side || 'Long') === 'Long' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: (position.side || 'Long') === 'Long' ? '#3b82f6' : '#ef4444', fontWeight: 'bold' }}>{(position.side || 'Long').toUpperCase()}</span>
+              <span style={{ fontSize: '10px', padding: '1px 4px', borderRadius: '3px', background: (position.side || 'Long') === 'Long' ? 'var(--color-blue-bg)' : 'var(--color-red-bg)', color: (position.side || 'Long') === 'Long' ? 'var(--color-blue)' : 'var(--color-red)', fontWeight: 'bold' }}>{(position.side || 'Long').toUpperCase()}</span>
               <span style={{ fontSize: '11px', color: 'var(--text-grey)', fontWeight: 'bold' }}>{position.leverage || '5x'}</span>
             </div>
           </div>
@@ -206,9 +206,9 @@ export default function PositionManager({ position, isOpen, onClose, onCloseMark
         <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '8px', padding: '14px', border: '1px solid var(--border-color)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
             <span className="info-label">Unrealized PnL</span>
-            <span style={{ color: (position.pnlUsd || '').startsWith('+') ? '#3b82f6' : '#ef4444', fontWeight: 'bold', fontFamily: 'Source Code Pro', fontSize: '18px' }}>{position.pnlUsd || '—'}</span>
+            <span style={{ color: (position.pnlUsd || '').startsWith('+') ? 'var(--color-blue)' : 'var(--color-red)', fontWeight: 'bold', fontFamily: 'Source Code Pro', fontSize: '18px' }}>{position.pnlUsd || '—'}</span>
           </div>
-          <div style={{ textAlign: 'right', fontSize: '12px', color: (position.pnlUsd || '').startsWith('+') ? '#3b82f6' : '#ef4444', opacity: 0.8 }}>{position.pnlPct || '—'}</div>
+          <div style={{ textAlign: 'right', fontSize: '12px', color: (position.pnlUsd || '').startsWith('+') ? 'var(--color-blue)' : 'var(--color-red)', opacity: 0.8 }}>{position.pnlPct || '—'}</div>
         </div>
 
         {/* DETAILS LIST */}

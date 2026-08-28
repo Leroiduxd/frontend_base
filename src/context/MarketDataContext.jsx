@@ -97,6 +97,15 @@ export function MarketDataProvider({ children }) {
     ? currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     : '...';
 
+  // Mise à jour dynamique du titre du site dans l'onglet du navigateur
+  useEffect(() => {
+    if (currentPrice && currentPrice > 0) {
+      document.title = `[XAU/USD] | $${goldPriceFormatted} | Brokex`;
+    } else {
+      document.title = `[XAU/USD] | Brokex`;
+    }
+  }, [currentPrice, goldPriceFormatted]);
+
   // 2. 24h Variation / High / Low (récupérés de market24h)
   const priceChangePercent24h = protocolInfo?.market24h?.price_change_percent_24h ?? 0;
   const changeFormatted = `${priceChangePercent24h >= 0 ? '+' : ''}${priceChangePercent24h.toFixed(2)}%`;

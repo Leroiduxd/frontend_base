@@ -298,22 +298,22 @@ export default function MarketSelector({ isOpen, onClose }) {
             </div>
 
             <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: m.change.startsWith('+') ? '#3b82f6' : '#ef4444' }}>{m.change}</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: m.change.startsWith('+') ? 'var(--color-blue)' : 'var(--color-red)' }}>{m.change}</span>
             </div>
 
             <div style={{ textAlign: 'right', fontSize: '12px', color: 'var(--text-grey)' }}>{m.volume}</div>
             
             <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }}>
               <div style={{ fontSize: '11px', display: 'flex', justifyContent: 'flex-end', gap: '4px' }}>
-                <span style={{ color: '#3b82f6' }}>{m.lsRatio}%</span>
+                <span style={{ color: 'var(--color-blue)' }}>{m.lsRatio}%</span>
                 <span style={{ color: 'var(--text-grey)' }}>/</span>
-                <span style={{ color: '#ef4444' }}>{100 - m.lsRatio}%</span>
+                <span style={{ color: 'var(--color-red)' }}>{100 - m.lsRatio}%</span>
               </div>
             </div>
 
             <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '11px', color: '#3b82f6' }}>L: {m.longFunding}</span>
-              <span style={{ fontSize: '11px', color: '#ef4444' }}>S: {m.shortFunding}</span>
+              <span style={{ fontSize: '11px', color: 'var(--color-blue)' }}>L: {m.longFunding}</span>
+              <span style={{ fontSize: '11px', color: 'var(--color-red)' }}>S: {m.shortFunding}</span>
             </div>
 
             <div style={{ textAlign: 'center', opacity: 0.5, transition: 'opacity 0.2s', color: 'var(--text-grey)' }} className="star-btn">

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 
 export default function LiveSummary() {
   const goldAccent = '#BC8961';
-  const blueColor = '#3b82f6';
-  const redColor = '#ef4444';
+  const blueColor = 'var(--color-blue)';
+  const redColor = 'var(--color-red)';
 
   // Live ticking state for active trades PnL fluctuation
   const [livePnl, setLivePnl] = useState(465.60);

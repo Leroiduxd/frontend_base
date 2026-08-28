@@ -372,8 +372,8 @@ export default function MobilePositions({ isFullPage = false }) {
                     padding: '2px 6px',
                     borderRadius: '4px',
                     fontWeight: 'bold',
-                    background: item.side === 'Long' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                    color: item.side === 'Long' ? '#3b82f6' : '#ef4444'
+                    background: item.side === 'Long' ? 'var(--color-blue-bg)' : 'var(--color-red-bg)',
+                    color: item.side === 'Long' ? 'var(--color-blue)' : 'var(--color-red)'
                   }}>
                     {item.side.toUpperCase()}
                   </span>
@@ -406,12 +406,16 @@ export default function MobilePositions({ isFullPage = false }) {
                 {activeTab === 'open' && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-grey)' }}>Entry Price:</span>
+                      <span style={{ fontWeight: '500', fontFamily: 'Source Code Pro' }}>{item.entryPrice}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ color: 'var(--text-grey)' }}>Market Price:</span>
                       <span style={{ fontWeight: '500', fontFamily: 'Source Code Pro' }}>{item.marketPrice}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ color: 'var(--text-grey)' }}>Liq. Price:</span>
-                      <span style={{ color: '#ef4444', fontFamily: 'Source Code Pro', fontWeight: '500' }}>{item.liqPrice}</span>
+                      <span style={{ color: 'var(--color-red)', fontFamily: 'Source Code Pro', fontWeight: '500' }}>{item.liqPrice}</span>
                     </div>
                   </>
                 )}
@@ -432,12 +436,16 @@ export default function MobilePositions({ isFullPage = false }) {
                 {activeTab === 'history' && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-grey)' }}>Entry Price:</span>
+                      <span style={{ fontWeight: '500', fontFamily: 'Source Code Pro' }}>{item.entryPrice}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ color: 'var(--text-grey)' }}>Close Price:</span>
                       <span style={{ fontWeight: '500', fontFamily: 'Source Code Pro' }}>{item.closePrice}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ color: 'var(--text-grey)' }}>Status:</span>
-                      <span style={{ color: item.status === 'CLOSED' ? '#3b82f6' : 'var(--text-grey)', fontWeight: 'bold' }}>{item.status}</span>
+                      <span style={{ color: item.status === 'CLOSED' ? 'var(--color-blue)' : 'var(--text-grey)', fontWeight: 'bold' }}>{item.status}</span>
                     </div>
                   </>
                 )}
@@ -455,11 +463,11 @@ export default function MobilePositions({ isFullPage = false }) {
               }}>
                 <div>
                   <span style={{ color: 'var(--text-grey)', marginRight: '4px' }}>TP:</span>
-                  <span style={{ color: '#3b82f6', fontFamily: 'Source Code Pro', fontWeight: '500' }}>{item.tp}</span>
+                  <span style={{ color: 'var(--color-blue)', fontFamily: 'Source Code Pro', fontWeight: '500' }}>{item.tp}</span>
                 </div>
                 <div>
                   <span style={{ color: 'var(--text-grey)', marginRight: '4px' }}>SL:</span>
-                  <span style={{ color: '#ef4444', fontFamily: 'Source Code Pro', fontWeight: '500' }}>{item.sl}</span>
+                  <span style={{ color: 'var(--color-red)', fontFamily: 'Source Code Pro', fontWeight: '500' }}>{item.sl}</span>
                 </div>
               </div>
 
@@ -480,7 +488,7 @@ export default function MobilePositions({ isFullPage = false }) {
                         fontSize: '12px',
                         fontWeight: 'bold',
                         fontFamily: 'Source Code Pro',
-                        color: item.isProfit ? '#3b82f6' : '#ef4444'
+                        color: item.isProfit ? 'var(--color-blue)' : 'var(--color-red)'
                       }}>
                         {item.pnlUsd} <span style={{ fontSize: '10px', fontWeight: '500' }}>({item.pnlPct})</span>
                       </span>
@@ -495,8 +503,8 @@ export default function MobilePositions({ isFullPage = false }) {
                       disabled={actionLoadingId === `close-${item.tradeId}`}
                       style={{
                         background: 'transparent',
-                        border: `1px solid ${sellColor}`,
-                        color: sellColor,
+                        border: '1px solid var(--color-red-glow)',
+                        color: 'var(--color-red)',
                         borderRadius: '4px',
                         fontSize: '10px',
                         fontWeight: 'bold',

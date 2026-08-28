@@ -95,8 +95,8 @@ export default function Ticker() {
   }, [markets, viewMode]);
 
   const theme = viewMode === 'winners' 
-    ? { color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.15)', label: 'TOP WINNERS', icon: <UpArrow /> }
-    : { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', label: 'TOP LOSERS', icon: <DownArrow /> };
+    ? { color: 'var(--color-blue)', bg: 'var(--color-blue-glow)', label: 'TOP WINNERS', icon: <UpArrow /> }
+    : { color: 'var(--color-red)', bg: 'var(--color-red-glow)', label: 'TOP LOSERS', icon: <DownArrow /> };
 
   return (
     <div className="ticker panel" style={{ 
@@ -163,7 +163,7 @@ export default function Ticker() {
           <span style={{ color: 'var(--text-grey)', fontSize: '10px' }}>Loading markets...</span>
         ) : (
           displayedMarkets.map((asset, index) => {
-            const itemColor = asset.isUp ? '#3b82f6' : '#ef4444';
+            const itemColor = asset.isUp ? 'var(--color-blue)' : 'var(--color-red)';
 
             return (
               <div 

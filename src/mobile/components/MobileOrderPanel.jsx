@@ -13,10 +13,10 @@ import { useSpread } from '../../hooks/useSpread';
 // Common Accent Colors (Theme-aware via CSS variables)
 const goldAccent = '#BC8961';
 const goldAccentLight = 'rgba(188, 137, 97, 0.15)';
-const buyColor = '#3b82f6'; // blue
-const sellColor = '#ef4444'; // red
-const buyColorBg = 'rgba(59, 130, 246, 0.1)';
-const sellColorBg = 'rgba(239, 68, 68, 0.1)';
+const buyColor = 'var(--color-blue)'; // blue
+const sellColor = 'var(--color-red)'; // red
+const buyColorBg = 'var(--color-blue-bg)';
+const sellColorBg = 'var(--color-red-bg)';
 
 const erc20Abi = [
   {
@@ -959,7 +959,7 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ color: 'var(--text-grey)' }}>Liquidation Price</span>
-          <span style={{ color: '#ef4444', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold' }}>
+          <span style={{ color: sellColor, fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold' }}>
             ${liqPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         </div>
