@@ -62,15 +62,15 @@ export default function TopNav({ onOpenMarket }) {
               [XAU]
             </div>
             <div className="ticker-info">
-              <span className="ticker-name" style={{ fontWeight: 'bold' }}>{ticker}</span>
-              <span className="ticker-desc">{description}</span>
+              <span className="ticker-name" style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-dark)' }}>{ticker}</span>
+              <span className="ticker-desc" style={{ fontSize: '10px', color: 'var(--text-grey)' }}>{description}</span>
             </div>
           </div>
 
           {/* Current Live Price */}
           <div className="stat-item" style={{ flexShrink: 0 }}>
             <span className="stat-label">Price</span>
-            <span className="stat-value" style={{ fontSize: '15px', fontWeight: 'bold', fontFamily: 'Source Code Pro, monospace', color: 'var(--text-dark)' }}>
+            <span className="stat-value" style={{ fontSize: '12px', fontWeight: 'bold', fontFamily: 'Source Code Pro, monospace', color: 'var(--text-dark)' }}>
               ${goldPriceFormatted}
             </span>
           </div>
@@ -78,7 +78,7 @@ export default function TopNav({ onOpenMarket }) {
           {/* Spread */}
           <div className="stat-item" style={{ flexShrink: 0 }}>
             <span className="stat-label">Spread</span>
-            <span className="stat-value" style={{ color: goldAccent, fontFamily: 'Source Code Pro, monospace' }}>
+            <span className="stat-value" style={{ fontSize: '12px', color: goldAccent, fontFamily: 'Source Code Pro, monospace' }}>
               {spreadFormatted}
             </span>
           </div>
@@ -86,7 +86,7 @@ export default function TopNav({ onOpenMarket }) {
           {/* 24h Change (Live positive/negative) */}
           <div className="stat-item" style={{ flexShrink: 0 }}>
             <span className="stat-label">24h Change</span>
-            <span className="stat-value" style={{ color: changeColor, fontWeight: '600', fontFamily: 'Source Code Pro, monospace' }}>
+            <span className="stat-value" style={{ fontSize: '12px', color: changeColor, fontWeight: '600', fontFamily: 'Source Code Pro, monospace' }}>
               {changeFormatted}
             </span>
           </div>
