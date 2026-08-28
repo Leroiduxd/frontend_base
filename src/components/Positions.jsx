@@ -3,6 +3,7 @@ import { useAccount, useWriteContract } from 'wagmi';
 import { api } from '../services/api';
 import { useMarketData } from '../context/MarketDataContext';
 import { useNotifications } from '../context/NotificationContext';
+import { brokexCoreAbi } from '../abi/brokexCoreAbi';
 import { getContractAddresses } from '../utils/contracts';
 import { calculateEstimatedSpreadLocal, calculatePositionPnLWithSpread } from '../utils/spreadCalculator';
 
