@@ -1,24 +1,43 @@
-import { useState, useMemo } from 'react'
-
-const ASSETS = [
-  { symbol: 'BTC/USD', name: 'Bitcoin' },
-  { symbol: 'ETH/USD', name: 'Ethereum' },
-  { symbol: 'SOL/USD', name: 'Solana' },
-  { symbol: 'EUR/USD', name: 'Euro / US Dollar' },
-  { symbol: 'GBP/USD', name: 'British Pound' },
-  { symbol: 'XAU/USD', name: 'Gold' },
-  { symbol: 'XAG/USD', name: 'Silver' },
-  { symbol: 'WTI/USD', name: 'Oil' },
-]
+import { useState, useMemo, useEffect } from 'react';
+import { useMarketData } from '../context/MarketDataContext';
+import { api } from '../services/api';
 
 export default function Ticker() {
-  const [viewMode, setViewMode] = useState('winners') // 'winners', 'losers', 'favorites'
+  const { marketsList: contextMarkets, network } = useMarketData();
+  const [localMarkets, setLocalMarkets] = useState([]);
+  const [viewMode, setViewMode] = useState('winners'); // 'winners' | 'losers'
   
+  // Utilise les marchés du context s'ils existent, sinon ceux chargés localement
+  const markets = (contextMarkets && contextMarkets.length > 0) ? contextMarkets : localMarkets;
+
+  // Récupération de secours via l'endpoint configuré dans api.js (qui utilise VITE_API_BASE_URL)
+  useEffect(() => {
+    let isMounted = true;
+    const fetchMarkets = async () => {
+      try {
+        const res = await api.getMarkets(network || 'testnet');
+        if (isMounted && res && Array.isArray(res.markets)) {
+          setLocalMarkets(res.markets);
+        }
+      } catch (err) {
+        console.warn("Ticker failed to fetch markets:", err);
+      }
+    };
+
+    if (!contextMarkets || contextMarkets.length === 0) {
+      fetchMarkets();
+    }
+    const interval = setInterval(fetchMarkets, 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [network, contextMarkets]);
+
   const toggleMode = () => {
-    const modes = ['winners', 'losers', 'favorites']
-    const nextIndex = (modes.indexOf(viewMode) + 1) % modes.length
-    setViewMode(modes[nextIndex])
-  }
+    setViewMode(prev => prev === 'winners' ? 'losers' : 'winners');
+  };
 
   // Icons
   const UpArrow = () => (
@@ -33,37 +52,51 @@ export default function Ticker() {
     </svg>
   );
 
-  const StarIcon = ({ fill = "currentColor" }) => (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill={fill} xmlns="http://www.w3.org/2000/svg" style={{ stroke: 'currentColor', strokeWidth: '2', strokeLinejoin: 'round', strokeLinecap: 'round' }}>
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-    </svg>
-  );
+  // Nettoyage du préfixe de symbole :
+  // "Equity.US.AAPL/USD" => "AAPL/USD"
+  // "Metal.XAU/USD" => "XAU/USD"
+  // "FX.EUR/USD" => "EUR/USD"
+  // "Crypto.BTC/USD" => "BTC/USD"
+  const cleanSymbol = (rawSymbol) => {
+    if (!rawSymbol) return '';
+    const parts = rawSymbol.split('.');
+    return parts[parts.length - 1];
+  };
 
-  // Generate random data for assets
-  const assetData = useMemo(() => {
-    return ASSETS.map(asset => {
-      const variation = (Math.random() * 5).toFixed(2)
-      const isUp = Math.random() > 0.5
+  // Tri des marchés :
+  // - Winners : tous les marchés triés du plus grand % au plus petit %
+  // - Losers : tous les marchés triés du plus petit % au plus grand %
+  const displayedMarkets = useMemo(() => {
+    if (!markets || markets.length === 0) return [];
+
+    const mapped = markets.map(m => {
+      const dayVal = typeof m.dayChangePercent === 'number' ? m.dayChangePercent : (typeof m.change24h === 'number' ? m.change24h : 0);
+      const weekVal = typeof m.weekChangePercent === 'number' ? m.weekChangePercent : 0;
+      const hourVal = typeof m.hourChangePercent === 'number' ? m.hourChangePercent : 0;
+      const change = dayVal !== 0 ? dayVal : (weekVal !== 0 ? weekVal : hourVal);
+
+      const symbol = cleanSymbol(m.symbol || m.display_symbol || m.name);
+
       return {
-        ...asset,
-        winnersVal: `+${variation}%`,
-        losersVal: `-${variation}%`,
-        favVal: `${isUp ? '+' : '-'}${variation}%`,
-        isUp
-      }
-    })
-  }, [])
+        symbol,
+        change,
+        changeFormatted: `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`,
+        isUp: change >= 0
+      };
+    }).filter(m => Boolean(m.symbol));
 
-  const getTheme = () => {
-    switch (viewMode) {
-      case 'winners': return { color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.15)', label: 'TOP WINNERS', icon: <UpArrow /> }
-      case 'losers': return { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', label: 'TOP LOSERS', icon: <DownArrow /> }
-      case 'favorites': return { color: 'var(--gold)', bg: 'rgba(200, 169, 126, 0.15)', label: 'FAVORITES', icon: <StarIcon fill="var(--gold)" /> }
-      default: return { color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.15)', label: 'TOP WINNERS', icon: <UpArrow /> }
+    const list = [...mapped];
+
+    if (viewMode === 'winners') {
+      return list.sort((a, b) => b.change - a.change);
+    } else {
+      return list.sort((a, b) => a.change - b.change);
     }
-  }
+  }, [markets, viewMode]);
 
-  const theme = getTheme()
+  const theme = viewMode === 'winners' 
+    ? { color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.15)', label: 'TOP WINNERS', icon: <UpArrow /> }
+    : { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', label: 'TOP LOSERS', icon: <DownArrow /> };
 
   return (
     <div className="ticker panel" style={{ 
@@ -76,7 +109,7 @@ export default function Ticker() {
       padding: '0 10px',
       overflow: 'hidden'
     }}>
-      {/* Toggle Button - Fixe à gauche */}
+      {/* Toggle Button - Seulement 2 modes : TOP WINNERS et TOP LOSERS */}
       <button 
         onClick={toggleMode}
         style={{
@@ -105,7 +138,7 @@ export default function Ticker() {
         {theme.label}
       </button>
 
-      {/* Liste Fixe des Actifs */}
+      {/* Liste Défilante des Actifs Réels */}
       <div 
         className="ticker-scroll"
         style={{
@@ -116,46 +149,54 @@ export default function Ticker() {
           justifyContent: 'flex-start',
           gap: '20px',
           overflowX: 'auto',
-          scrollbarWidth: 'none', // Firefox
-          msOverflowStyle: 'none' // IE/Edge
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
         }}
       >
         <style>{`
           .ticker-scroll::-webkit-scrollbar {
-            display: none; // Chrome/Safari
+            display: none;
           }
         `}</style>
-        {assetData.map((asset, index) => {
-          let displayColor = theme.color;
-          if (viewMode === 'favorites') {
-            displayColor = asset.isUp ? '#3b82f6' : '#ef4444';
-          }
 
-          return (
-            <div key={`${asset.symbol}-${index}`} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-              <span style={{ color: 'var(--text-grey)', fontSize: '10px', fontWeight: '600' }}>{asset.symbol}</span>
-              <span style={{ 
-                color: displayColor, 
-                fontSize: '10px', 
-                fontWeight: 'bold',
-                fontFamily: 'monospace',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}>
-                {viewMode === 'winners' && <><UpArrow /> {asset.winnersVal}</>}
-                {viewMode === 'losers' && <><DownArrow /> {asset.losersVal}</>}
-                {viewMode === 'favorites' && (
-                  <>
-                    {asset.isUp ? <UpArrow /> : <DownArrow />}
-                    {asset.favVal}
-                  </>
-                )}
-              </span>
-            </div>
-          );
-        })}
+        {displayedMarkets.length === 0 ? (
+          <span style={{ color: 'var(--text-grey)', fontSize: '10px' }}>Loading markets...</span>
+        ) : (
+          displayedMarkets.map((asset, index) => {
+            const itemColor = asset.isUp ? '#3b82f6' : '#ef4444';
+
+            return (
+              <div 
+                key={`${asset.symbol}-${index}`} 
+                style={{ 
+                  display: 'flex', 
+                  flexDirection: 'row', 
+                  alignItems: 'center', 
+                  gap: '8px', 
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0
+                }}
+              >
+                <span style={{ color: 'var(--text-grey)', fontSize: '10px', fontWeight: '600' }}>
+                  {asset.symbol}
+                </span>
+                <span style={{ 
+                  color: itemColor, 
+                  fontSize: '10px', 
+                  fontWeight: 'bold',
+                  fontFamily: 'Source Code Pro, monospace',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  {asset.isUp ? <UpArrow /> : <DownArrow />}
+                  {asset.changeFormatted}
+                </span>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
-  )
+  );
 }

@@ -1,39 +1,81 @@
-import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import MobileLayout from '../components/MobileLayout';
+import { useMarketData } from '../../context/MarketDataContext';
 
-const marketsData = [
+const cleanSymbol = (rawSymbol) => {
+  if (!rawSymbol) return '';
+  const parts = rawSymbol.split('.');
+  return parts[parts.length - 1];
+};
+
+const defaultMarketsData = [
   // CRYPTO
-  { symbol: 'BTC-USDC', price: '78,207.00', change: '-1.10%', volume: '$1.64B', leverage: '40x', category: 'Crypto', logo: 'BTC' },
-  { symbol: 'ETH-USDC', price: '2,180.50', change: '-1.74%', volume: '$592.5M', leverage: '25x', category: 'Crypto', logo: 'ETH' },
-  { symbol: 'SOL-USDC', price: '142.12', change: '+2.85%', volume: '$452.1M', leverage: '20x', category: 'Crypto', logo: 'SOL' },
+  { symbol: 'BTC/USD', price: '78,207.00', change: '-1.10%', volume: '$1.64B', leverage: '40x', category: 'Crypto', logo: 'BTC' },
+  { symbol: 'ETH/USD', price: '2,180.50', change: '-1.74%', volume: '$592.5M', leverage: '25x', category: 'Crypto', logo: 'ETH' },
+  { symbol: 'SOL/USD', price: '142.12', change: '+2.85%', volume: '$452.1M', leverage: '20x', category: 'Crypto', logo: 'SOL' },
   
   // COMMODITIES
-  { symbol: 'XAU-USD', price: '2,315.10', change: '+0.45%', volume: '$452.0M', leverage: '50x', category: 'Commodities', logo: 'XAU' },
-  { symbol: 'XAG-USD', price: '28.45', change: '-0.21%', volume: '$104.0M', leverage: '20x', category: 'Commodities', logo: 'XAG' },
-  { symbol: 'WTI-USD', price: '82.45', change: '+0.15%', volume: '$85.0M', leverage: '20x', category: 'Commodities', logo: 'WTI' },
+  { symbol: 'XAU/USD', price: '2,315.10', change: '+0.45%', volume: '$452.0M', leverage: '50x', category: 'Commodities', logo: 'XAU' },
+  { symbol: 'XAG/USD', price: '28.45', change: '-0.21%', volume: '$104.0M', leverage: '20x', category: 'Commodities', logo: 'XAG' },
+  { symbol: 'WTI/USD', price: '82.45', change: '+0.15%', volume: '$85.0M', leverage: '20x', category: 'Commodities', logo: 'WTI' },
 
   // FOREX
-  { symbol: 'EUR-USD', price: '1.0842', change: '+0.12%', volume: '$12.4B', leverage: '100x', category: 'Forex', logo: 'EUR' },
-  { symbol: 'GBP-USD', price: '1.2645', change: '-0.08%', volume: '$8.1B', leverage: '100x', category: 'Forex', logo: 'GBP' },
-  { symbol: 'USD-JPY', price: '149.52', change: '+0.34%', volume: '$15.2B', leverage: '100x', category: 'Forex', logo: 'JPY' },
+  { symbol: 'EUR/USD', price: '1.0842', change: '+0.12%', volume: '$12.4B', leverage: '100x', category: 'Forex', logo: 'EUR' },
+  { symbol: 'GBP/USD', price: '1.2645', change: '-0.08%', volume: '$8.1B', leverage: '100x', category: 'Forex', logo: 'GBP' },
+  { symbol: 'USD/JPY', price: '149.52', change: '+0.34%', volume: '$15.2B', leverage: '100x', category: 'Forex', logo: 'JPY' },
   
   // STOCKS
-  { symbol: 'AAPL-USD', price: '189.45', change: '+0.24%', volume: '$1.2B', leverage: '10x', category: 'Stocks', logo: 'AAPL' },
-  { symbol: 'META-USD', price: '502.12', change: '-0.45%', volume: '$840.0M', leverage: '10x', category: 'Stocks', logo: 'META' },
-  { symbol: 'MSFT-USD', price: '415.67', change: '+0.51%', volume: '$950.0M', leverage: '10x', category: 'Stocks', logo: 'MSFT' },
+  { symbol: 'AAPL/USD', price: '189.45', change: '+0.24%', volume: '$1.2B', leverage: '10x', category: 'Stocks', logo: 'AAPL' },
+  { symbol: 'META/USD', price: '502.12', change: '-0.45%', volume: '$840.0M', leverage: '10x', category: 'Stocks', logo: 'META' },
+  { symbol: 'MSFT/USD', price: '415.67', change: '+0.51%', volume: '$950.0M', leverage: '10x', category: 'Stocks', logo: 'MSFT' },
 ];
 
 const categories = ['All', 'Crypto', 'Commodities', 'Forex', 'Stocks'];
 
 export default function MobileMarkets() {
+  const { marketsList } = useMarketData();
   const [activeCategory, setActiveCategory] = useState('All');
   const navigate = useNavigate();
 
+  const formattedMarkets = useMemo(() => {
+    if (!marketsList || marketsList.length === 0) return defaultMarketsData;
+
+    return marketsList.map(m => {
+      const sym = cleanSymbol(m.symbol || m.display_symbol || m.name);
+      const dayVal = typeof m.dayChangePercent === 'number' ? m.dayChangePercent : (typeof m.change24h === 'number' ? m.change24h : 0);
+      const weekVal = typeof m.weekChangePercent === 'number' ? m.weekChangePercent : 0;
+      const hourVal = typeof m.hourChangePercent === 'number' ? m.hourChangePercent : 0;
+      const changeVal = dayVal !== 0 ? dayVal : (weekVal !== 0 ? weekVal : hourVal);
+      const priceStr = typeof m.price === 'number'
+        ? m.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: m.price < 10 ? 4 : 2 })
+        : (m.price || '0.00');
+
+      let category = 'Crypto';
+      const catLower = (m.category || '').toLowerCase();
+      if (catLower.includes('metal') || catLower.includes('commodity') || sym.startsWith('XAU') || sym.startsWith('XAG') || sym.startsWith('WTI')) {
+        category = 'Commodities';
+      } else if (catLower.includes('fx') || catLower.includes('forex') || sym.startsWith('EUR') || sym.startsWith('GBP') || sym.startsWith('USD')) {
+        category = 'Forex';
+      } else if (catLower.includes('stock') || catLower.includes('equity') || sym.startsWith('AAPL') || sym.startsWith('META') || sym.startsWith('MSFT')) {
+        category = 'Stocks';
+      }
+
+      const logo = sym.split('/')[0].slice(0, 4);
+
+      return {
+        symbol: sym,
+        price: priceStr,
+        change: `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)}%`,
+        volume: m.volume24h ? `$${m.volume24h}` : '$452.0M',
+        leverage: m.maxLeverage ? `${m.maxLeverage}x` : '50x',
+        category,
+        logo
+      };
+    });
+  }, [marketsList]);
+
   const filteredMarkets = useMemo(() => {
-    if (activeCategory === 'All') return marketsData;
-    return marketsData.filter(m => m.category === activeCategory);
-  }, [activeCategory]);
+    if (activeCategory === 'All') return formattedMarkets;
+    return formattedMarkets.filter(m => m.category === activeCategory);
+  }, [activeCategory, formattedMarkets]);
 
   const handleSelectMarket = (symbol) => {
     // Save selected pair to localStorage to update the trading chart and tickers
@@ -42,6 +84,17 @@ export default function MobileMarkets() {
     window.dispatchEvent(new Event('brokex_pair_changed'));
     // Redirect to trade
     navigate('/');
+  };
+
+  const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+
+  const handleBottomAction = () => {
+    if (!isConnected) {
+      if (openConnectModal) openConnectModal();
+    } else {
+      navigate('/');
+    }
   };
 
   return (
@@ -108,9 +161,7 @@ export default function MobileMarkets() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                position: 'relative',
-                overflow: 'hidden'
+                transition: 'all 0.2s ease'
               }}
               className="market-list-card"
             >
@@ -127,7 +178,8 @@ export default function MobileMarkets() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '11px'
+                  fontSize: '11px',
+                  flexShrink: 0
                 }}>
                   {m.logo}
                 </div>
@@ -135,22 +187,9 @@ export default function MobileMarkets() {
                   <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-dark)' }}>
                     {m.symbol}
                   </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{
-                      fontSize: '8px',
-                      background: 'rgba(255, 255, 255, 0.04)',
-                      padding: '1px 4px',
-                      borderRadius: '4px',
-                      color: 'var(--text-grey)',
-                      border: '1px solid rgba(255, 255, 255, 0.02)',
-                      fontWeight: 'bold'
-                    }}>
-                      {m.leverage}
-                    </span>
-                    <span style={{ fontSize: '10px', color: 'var(--text-grey)' }}>
-                      Vol {m.volume}
-                    </span>
-                  </div>
+                  <span style={{ fontSize: '10px', color: 'var(--text-grey)' }}>
+                    Vol {m.volume} ({m.leverage})
+                  </span>
                 </div>
               </div>
 
@@ -160,7 +199,7 @@ export default function MobileMarkets() {
                   ${m.price}
                 </span>
                 <span style={{
-                  fontSize: '10.5px',
+                  fontSize: '9.5px',
                   fontWeight: 'bold',
                   fontFamily: 'Source Code Pro, monospace',
                   color: isPositive ? '#3b82f6' : '#ef4444'
@@ -168,16 +207,59 @@ export default function MobileMarkets() {
                   {m.change}
                 </span>
               </div>
-
-              <style>{`
-                .market-list-card:active {
-                  transform: scale(0.98);
-                  background: rgba(200, 169, 126, 0.04);
-                }
-              `}</style>
             </div>
           );
         })}
+      </div>
+
+      {/* Full width Trade / Connect Button at bottom */}
+      <div style={{
+        position: 'sticky',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        paddingTop: '12px',
+        paddingBottom: '4px',
+        background: 'linear-gradient(to top, var(--bg-dark) 80%, transparent)',
+        zIndex: 50,
+        marginTop: 'auto'
+      }}>
+        <button
+          onClick={handleBottomAction}
+          style={{
+            width: '100%',
+            height: '38px',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '13.5px',
+            fontWeight: '700',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#ffffff',
+            color: '#000000',
+            boxShadow: '0 3px 12px rgba(255, 255, 255, 0.15)',
+            transition: 'transform 0.15s ease, opacity 0.15s ease'
+          }}
+          className="mobile-trade-action-btn"
+        >
+          {isConnected ? 'Trade' : 'Connect Wallet'}
+        </button>
+        <style>{`
+          .mobile-trade-action-btn {
+            background-color: #ffffff;
+            color: #000000;
+          }
+          body.light-mode .mobile-trade-action-btn {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+          }
+          .mobile-trade-action-btn:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+          }
+        `}</style>
       </div>
     </MobileLayout>
   );

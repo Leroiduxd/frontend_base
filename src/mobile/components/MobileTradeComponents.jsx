@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useMarketData } from '../../context/MarketDataContext';
 import MobileTradeHeader from './MobileTradeHeader';
 import MobilePositions from './MobilePositions';
 import MobileOrderPanel from './MobileOrderPanel';
@@ -17,7 +18,27 @@ const sellColorBg = 'rgba(239, 68, 68, 0.1)';
 // 0.5. MOBILE TOPNAV (TradeHeader + Scrollable Metrics Row)
 // ----------------------------------------------------
 export function MobileTopNav({ activeMarketInfo, setIsMarketSelectorOpen }) {
-  const isPositive = activeMarketInfo.change.startsWith('+');
+  const { 
+    goldPriceFormatted,
+    changeFormatted,
+    priceChangePercent24h,
+    high24hFormatted,
+    low24hFormatted,
+    longBorrowRateFormatted,
+    shortBorrowRateFormatted,
+    spreadFormatted,
+    oiTotalFormatted,
+    oiLongFormatted,
+    oiShortFormatted,
+    longRatio,
+    volume24hFormatted,
+    longVolFormatted,
+    shortVolFormatted,
+    pythMetadata,
+    protocolInfo
+  } = useMarketData();
+
+  const isPositive = priceChangePercent24h >= 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -27,12 +48,13 @@ export function MobileTopNav({ activeMarketInfo, setIsMarketSelectorOpen }) {
         setIsMarketSelectorOpen={setIsMarketSelectorOpen} 
       />
 
-      {/* 2. Scrollable stats row (matching TopNav.jsx exactly, with Price/Variation cleanly omitted as they are placed in Header) */}
+      {/* 2. Scrollable stats row (matching TopNav.jsx exact live fields, with mobile style) */}
       <div className="mobile-metrics-scroll no-scrollbar" style={{
         display: 'flex',
-        gap: '18px',
+        gap: '16px',
+        alignItems: 'center',
         overflowX: 'auto',
-        padding: '4px 12px 12px 12px',
+        padding: '4px 12px 10px 12px',
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
         borderBottom: '1px solid var(--border-color)',
@@ -43,27 +65,40 @@ export function MobileTopNav({ activeMarketInfo, setIsMarketSelectorOpen }) {
           .mobile-metrics-scroll > * { flex-shrink: 0; }
         `}</style>
 
-        {/* Funding Long */}
+        {/* Spread */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>Funding Long</span>
-          <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold', color: '#ef4444' }}>
-            0.0100%
+          <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>Spread</span>
+          <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold', color: goldAccent }}>
+            {spreadFormatted}
           </span>
         </div>
 
-        {/* Funding Short */}
+        <div style={{ width: '1px', height: '18px', background: 'var(--border-color)' }}></div>
+
+        {/* Borrow Long / Borrow Short */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>Funding Short</span>
+          <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>Borrow Long/h</span>
           <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold', color: '#3b82f6' }}>
-            -0.0100%
+            {longBorrowRateFormatted}
           </span>
         </div>
 
-        {/* Open Interest */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>Open Interest</span>
-          <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold', color: 'var(--text-dark)' }}>
-            {activeMarketInfo.symbol === 'XAU/USD' || activeMarketInfo.symbol === 'XAU-USD' ? '125.4M / 500M' : activeMarketInfo.symbol === 'BTC/USD' || activeMarketInfo.symbol === 'BTC-USDC' ? '42.8M / 200M' : '15.2M / 100M'}
+          <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>Borrow Short/h</span>
+          <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold', color: '#ef4444' }}>
+            {shortBorrowRateFormatted}
+          </span>
+        </div>
+
+        <div style={{ width: '1px', height: '18px', background: 'var(--border-color)' }}></div>
+
+        {/* Open Interest (Long / Short) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>Open Interest (L / S)</span>
+          <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold' }}>
+            <span style={{ color: '#3b82f6' }}>{oiLongFormatted}</span>
+            <span style={{ color: 'var(--text-grey)', margin: '0 3px' }}>/</span>
+            <span style={{ color: '#ef4444' }}>{oiShortFormatted}</span>
           </span>
         </div>
 
@@ -71,17 +106,45 @@ export function MobileTopNav({ activeMarketInfo, setIsMarketSelectorOpen }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>L/S Ratio</span>
           <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold' }}>
-            <span style={{ color: '#3b82f6' }}>65%</span>
-            <span style={{ color: 'var(--text-grey)', margin: '0 2px' }}>/</span>
-            <span style={{ color: '#ef4444' }}>35%</span>
+            <span style={{ color: '#3b82f6' }}>{longRatio}%</span>
+            <span style={{ color: 'var(--text-grey)', margin: '0 3px' }}>/</span>
+            <span style={{ color: '#ef4444' }}>{100 - longRatio}%</span>
           </span>
         </div>
 
-        {/* 24h Volume */}
+        <div style={{ width: '1px', height: '18px', background: 'var(--border-color)' }}></div>
+
+        {/* 24h Volume Total & Long/Short */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>24h Volume</span>
+          <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>24h Vol</span>
           <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold', color: 'var(--text-dark)' }}>
-            {activeMarketInfo.volume}
+            {volume24hFormatted}
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>Vol (L / S)</span>
+          <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold' }}>
+            <span style={{ color: '#3b82f6' }}>{longVolFormatted}</span>
+            <span style={{ color: 'var(--text-grey)', margin: '0 3px' }}>/</span>
+            <span style={{ color: '#ef4444' }}>{shortVolFormatted}</span>
+          </span>
+        </div>
+
+        <div style={{ width: '1px', height: '18px', background: 'var(--border-color)' }}></div>
+
+        {/* 24h Low & 24h High */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>24h Low</span>
+          <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold', color: 'var(--text-dark)' }}>
+            {low24hFormatted}
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <span style={{ fontSize: '8px', color: 'var(--text-grey)', textTransform: 'uppercase' }}>24h High</span>
+          <span style={{ fontSize: '10.5px', fontFamily: 'Source Code Pro, monospace', fontWeight: 'bold', color: 'var(--text-dark)' }}>
+            {high24hFormatted}
           </span>
         </div>
       </div>

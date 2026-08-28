@@ -1,22 +1,66 @@
 import { useEffect, useRef, useState } from 'react';
 import { createChart, ColorType, CandlestickSeries, AreaSeries } from 'lightweight-charts';
+import { api } from '../services/api';
+import { useMarketData } from '../context/MarketDataContext';
+import useIsMobile from '../hooks/useIsMobile';
+
+const TIMEFRAME_TO_RESOLUTION = {
+  '1m': '1',
+  '5m': '5',
+  '15m': '15',
+  '30m': '30',
+  '1h': '60',
+  '4h': '240',
+  '1d': '1440',
+  '1w': '10080'
+};
 
 export default function Chart() {
+  const { goldPrice, network } = useMarketData();
   const chartContainerRef = useRef(null);
   const chartWrapperRef = useRef(null);
   const [chartInstance, setChartInstance] = useState(null);
   const seriesRef = useRef(null);
-  const lastPriceRef = useRef(2300);
-  const lastTimeRef = useRef(Math.floor(Date.now() / 1000));
+  const lastCandleRef = useRef(null);
 
+  const allCandlesRef = useRef([]);
+  const isFetchingOlderRef = useRef(false);
+  const hasMoreHistoryRef = useRef(true);
+
+  const isMobile = useIsMobile();
   const [activeTimeframe, setActiveTimeframe] = useState('15m');
   const [isCandleType, setIsCandleType] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const timeframes = ['1m', '5m', '15m', '1h', '4h', '1d', '1w'];
+  const timeframes = ['1m', '5m', '15m', '30m', '1h', '4h', '1d'];
 
-  // Initialize Chart
+  // Keep fullscreen state in sync with native browser events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const fsElement =
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement;
+      setIsFullscreen(Boolean(fsElement));
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
+
+  // 1. Initialize Chart
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
@@ -43,6 +87,7 @@ export default function Chart() {
         timeScale: {
           borderColor: 'rgba(255,255,255,0.05)',
           timeVisible: true,
+          secondsVisible: false,
         },
         width: chartContainerRef.current.clientWidth,
         height: chartContainerRef.current.clientHeight,
@@ -69,107 +114,268 @@ export default function Chart() {
     }
   }, []);
 
-  // Update Series and Data
+  // 2. Fetch Initial Candles on Timeframe / Network / Type Change
   useEffect(() => {
     if (!chartInstance) return;
 
-    try {
-      if (seriesRef.current) {
-        chartInstance.removeSeries(seriesRef.current);
-      }
+    let isMounted = true;
+    const resolution = TIMEFRAME_TO_RESOLUTION[activeTimeframe] || '15';
+    hasMoreHistoryRef.current = true;
+    isFetchingOlderRef.current = false;
+    allCandlesRef.current = [];
 
-      let series;
-      if (isCandleType) {
-        series = chartInstance.addSeries(CandlestickSeries, {
-          upColor: '#3b82f6',
-          downColor: '#ef4444',
-          borderVisible: false,
-          wickUpColor: '#3b82f6',
-          wickDownColor: '#ef4444',
+    const loadData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const res = await api.getChartHistory({
+          resolution,
+          limit: 200,
+          network
         });
-      } else {
-        series = chartInstance.addSeries(AreaSeries, {
-          lineColor: '#c8a97e',
-          topColor: 'rgba(200, 169, 126, 0.2)',
-          bottomColor: 'rgba(200, 169, 126, 0)',
-          lineWidth: 2,
-        });
-      }
-      seriesRef.current = series;
 
-      // Initial historical data
-      const data = [];
-      let price = 2300;
-      const interval = 60;
-      const now = Math.floor(Date.now() / 1000);
+        if (!isMounted) return;
 
-      for (let i = 0; i < 200; i++) {
-        const time = now - (200 - i) * interval;
-        const open = price;
-        const close = price + (Math.random() - 0.5) * 10;
-        const high = Math.max(open, close) + Math.random() * 2;
-        const low = Math.min(open, close) - Math.random() * 2;
-
-        if (isCandleType) {
-          data.push({ time, open, high, low, close });
-        } else {
-          data.push({ time, value: close });
+        if (seriesRef.current) {
+          chartInstance.removeSeries(seriesRef.current);
         }
-        price = close;
+
+        let series;
+        if (isCandleType) {
+          series = chartInstance.addSeries(CandlestickSeries, {
+            upColor: '#3b82f6',
+            downColor: '#ef4444',
+            borderVisible: false,
+            wickUpColor: '#3b82f6',
+            wickDownColor: '#ef4444',
+          });
+        } else {
+          series = chartInstance.addSeries(AreaSeries, {
+            lineColor: '#c8a97e',
+            topColor: 'rgba(200, 169, 126, 0.2)',
+            bottomColor: 'rgba(200, 169, 126, 0)',
+            lineWidth: 2,
+          });
+        }
+        seriesRef.current = series;
+
+        if (res.candles && res.candles.length > 0) {
+          const sorted = [...res.candles].sort((a, b) => a.time - b.time);
+          const uniqueCandles = [];
+          const seen = new Set();
+          for (const c of sorted) {
+            if (!seen.has(c.time)) {
+              seen.add(c.time);
+              uniqueCandles.push(c);
+            }
+          }
+
+          allCandlesRef.current = uniqueCandles;
+
+          if (isCandleType) {
+            series.setData(uniqueCandles);
+          } else {
+            series.setData(uniqueCandles.map(c => ({ time: c.time, value: c.close })));
+          }
+
+          const last = uniqueCandles[uniqueCandles.length - 1];
+          lastCandleRef.current = { ...last };
+          chartInstance.timeScale().fitContent();
+        }
+      } catch (err) {
+        console.error("Failed to load chart candles:", err);
+        if (isMounted) setError(err.message);
+      } finally {
+        if (isMounted) setIsLoading(false);
       }
+    };
 
-      series.setData(data);
-      lastPriceRef.current = price;
-      lastTimeRef.current = now;
-      chartInstance.timeScale().fitContent();
-    } catch (err) {
-      console.error("Series update error:", err);
-      setError(err.message);
-    }
-  }, [chartInstance, isCandleType]);
+    loadData();
 
-  // Live updates
+    return () => {
+      isMounted = false;
+    };
+  }, [chartInstance, activeTimeframe, isCandleType, network]);
+
+  // 3. Infinite Scroll Backwards: Detect Scroll to Left and Load Older Candles
   useEffect(() => {
-    if (!chartInstance || !seriesRef.current) return;
+    if (!chartInstance) return;
 
-    const timer = setInterval(() => {
-      if (!seriesRef.current) return;
+    const resolution = TIMEFRAME_TO_RESOLUTION[activeTimeframe] || '15';
+    let isSubscribed = true;
 
-      const change = (Math.random() - 0.5) * 4;
-      const newPrice = lastPriceRef.current + change;
+    const handleLogicalRangeChange = async (logicalRange) => {
+      if (!logicalRange || !hasMoreHistoryRef.current || isFetchingOlderRef.current) return;
 
+      // When the user scrolls close to the leftmost visible bars (logicalRange.from < 25)
+      if (logicalRange.from < 25 && allCandlesRef.current.length > 0) {
+        isFetchingOlderRef.current = true;
+        const oldestTime = allCandlesRef.current[0].time;
+
+        try {
+          const olderData = await api.getChartHistory({
+            resolution,
+            limit: 200,
+            to: oldestTime - 1,
+            network
+          });
+
+          if (!isSubscribed) return;
+
+          if (olderData && Array.isArray(olderData.candles) && olderData.candles.length > 0) {
+            const olderSorted = [...olderData.candles].sort((a, b) => a.time - b.time);
+            
+            // Deduplicate and prepend
+            const seenTimes = new Set(allCandlesRef.current.map(c => c.time));
+            const newOldCandles = olderSorted.filter(c => !seenTimes.has(c.time));
+
+            if (newOldCandles.length > 0) {
+              const currentRange = chartInstance.timeScale().getVisibleLogicalRange();
+              const addedCount = newOldCandles.length;
+              const combined = [...newOldCandles, ...allCandlesRef.current];
+              allCandlesRef.current = combined;
+
+              if (seriesRef.current) {
+                if (isCandleType) {
+                  seriesRef.current.setData(combined);
+                } else {
+                  seriesRef.current.setData(combined.map(c => ({ time: c.time, value: c.close })));
+                }
+              }
+
+              // Preserve exact scroll position so user keeps smooth panning without jumping
+              if (currentRange) {
+                chartInstance.timeScale().setVisibleLogicalRange({
+                  from: currentRange.from + addedCount,
+                  to: currentRange.to + addedCount,
+                });
+              }
+            } else {
+              hasMoreHistoryRef.current = false;
+            }
+          } else {
+            hasMoreHistoryRef.current = false;
+          }
+        } catch (e) {
+          console.warn("Failed to load older candles:", e);
+        } finally {
+          if (isSubscribed) {
+            isFetchingOlderRef.current = false;
+          }
+        }
+      }
+    };
+
+    chartInstance.timeScale().subscribeVisibleLogicalRangeChange(handleLogicalRangeChange);
+
+    return () => {
+      isSubscribed = false;
+      chartInstance.timeScale().unsubscribeVisibleLogicalRangeChange(handleLogicalRangeChange);
+    };
+  }, [chartInstance, activeTimeframe, isCandleType, network]);
+
+  // 4. Live Price Updates (from Oracle) on the current candle
+  useEffect(() => {
+    if (!seriesRef.current || !lastCandleRef.current || !goldPrice) return;
+
+    const currentCandle = lastCandleRef.current;
+    const newPrice = Number(goldPrice);
+
+    const updatedCandle = {
+      ...currentCandle,
+      high: Math.max(currentCandle.high, newPrice),
+      low: Math.min(currentCandle.low, newPrice),
+      close: newPrice,
+    };
+
+    lastCandleRef.current = updatedCandle;
+
+    try {
       if (isCandleType) {
-        seriesRef.current.update({
-          time: lastTimeRef.current,
-          open: lastPriceRef.current,
-          high: Math.max(lastPriceRef.current, newPrice) + 0.5,
-          low: Math.min(lastPriceRef.current, newPrice) - 0.5,
-          close: newPrice
-        });
+        seriesRef.current.update(updatedCandle);
       } else {
         seriesRef.current.update({
-          time: lastTimeRef.current,
-          value: newPrice
+          time: updatedCandle.time,
+          value: newPrice,
         });
       }
-      lastPriceRef.current = newPrice;
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [chartInstance, isCandleType]);
+    } catch (e) {
+      // Ignore update timing race conditions
+    }
+  }, [goldPrice, isCandleType]);
 
   const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      chartWrapperRef.current.requestFullscreen();
+    if (!isFullscreen) {
       setIsFullscreen(true);
+      if (chartWrapperRef.current) {
+        const req =
+          chartWrapperRef.current.requestFullscreen ||
+          chartWrapperRef.current.webkitRequestFullscreen ||
+          chartWrapperRef.current.mozRequestFullScreen ||
+          chartWrapperRef.current.msRequestFullscreen;
+
+        if (req) {
+          try {
+            const res = req.call(chartWrapperRef.current);
+            if (res && typeof res.catch === 'function') {
+              res.catch(() => {});
+            }
+          } catch (err) {
+            // Native fullscreen not supported (e.g. iOS Safari), fallback to CSS fullscreen
+          }
+        }
+      }
     } else {
-      document.exitFullscreen();
       setIsFullscreen(false);
+      const fsElement =
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement;
+
+      if (fsElement) {
+        const exit =
+          document.exitFullscreen ||
+          document.webkitExitFullscreen ||
+          document.mozCancelFullScreen ||
+          document.msExitFullscreen;
+
+        if (exit) {
+          try {
+            const res = exit.call(document);
+            if (res && typeof res.catch === 'function') {
+              res.catch(() => {});
+            }
+          } catch (err) {}
+        }
+      }
     }
   };
 
   return (
-    <div ref={chartWrapperRef} className="chart panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
+    <div
+      ref={chartWrapperRef}
+      className="chart panel"
+      style={isFullscreen ? {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100dvh',
+        zIndex: 99999,
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: 'var(--bg-dark)',
+        padding: '8px'
+      } : {
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        width: '100%'
+      }}
+    >
       <div className="chart-toolbar" style={{ display: 'flex', padding: '6px 8px', gap: '8px', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: '2px' }}>
           {timeframes.map(tf => (
@@ -244,12 +450,11 @@ export default function Chart() {
       </div>
 
       <div style={{ flex: 1, position: 'relative' }}>
-        {error ? (
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', fontSize: '12px', textAlign: 'center', padding: '20px' }}>
+        <div ref={chartContainerRef} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+        {error && (
+          <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', color: '#ef4444', fontSize: '11px', padding: '4px 8px', borderRadius: '4px', zIndex: 10 }}>
             {error}
           </div>
-        ) : (
-          <div ref={chartContainerRef} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
         )}
       </div>
     </div>

@@ -1,39 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useAccount } from 'wagmi';
+import { useConnectModal, useAccountModal } from '@rainbow-me/rainbowkit';
+import { useMarketData } from '../../context/MarketDataContext';
+import { api } from '../../services/api';
 
-const TICKER_ITEMS = [
-  { symbol: 'BTC', price: '$78,207', change: '-1.1%', isUp: false },
-  { symbol: 'ETH', price: '$2,180', change: '-1.7%', isUp: false },
-  { symbol: 'SOL', price: '$142.1', change: '+2.8%', isUp: true },
-  { symbol: 'XAU', price: '$2,315', change: '+0.4%', isUp: true },
-  { symbol: 'EUR', price: '$1.084', change: '+0.1%', isUp: true },
-  { symbol: 'AAPL', price: '$189.4', change: '+0.2%', isUp: true },
-];
+const cleanSymbol = (rawSymbol) => {
+  if (!rawSymbol) return '';
+  const parts = rawSymbol.split('.');
+  return parts[parts.length - 1];
+};
 
 export default function MobileLayout({ children, disablePadding = false }) {
-  const location = useLocation();
+  const { marketsList: contextMarkets, network } = useMarketData();
+  const [localMarkets, setLocalMarkets] = useState([]);
+  const { address, isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+  const { openAccountModal } = useAccountModal();
 
   const [isLightMode, setIsLightMode] = useState(
     document.body.classList.contains('light-mode')
   );
 
-  const [isConnected, setIsConnected] = useState(() => {
-    return localStorage.getItem('brokex_wallet_connected') === 'true';
-  });
+  const markets = (contextMarkets && contextMarkets.length > 0) ? contextMarkets : localMarkets;
 
-  // Sync wallet state with other pages/triggers
   useEffect(() => {
-    const handleStorageChange = () => {
-      setIsConnected(localStorage.getItem('brokex_wallet_connected') === 'true');
+    let isMounted = true;
+    const fetchMarkets = async () => {
+      try {
+        const res = await api.getMarkets(network || 'testnet');
+        if (isMounted && res && Array.isArray(res.markets)) {
+          setLocalMarkets(res.markets);
+        }
+      } catch (err) {
+        console.warn("Mobile ticker failed to fetch markets:", err);
+      }
     };
-    window.addEventListener('storage', handleStorageChange);
-    // Custom event to sync connection in the same tab immediately
-    window.addEventListener('wallet_connection_changed', handleStorageChange);
+
+    if (!contextMarkets || contextMarkets.length === 0) {
+      fetchMarkets();
+    }
+    const interval = setInterval(fetchMarkets, 5000);
+
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('wallet_connection_changed', handleStorageChange);
+      isMounted = false;
+      clearInterval(interval);
     };
-  }, []);
+  }, [network, contextMarkets]);
+
+  const tickerItems = useMemo(() => {
+    if (!markets || markets.length === 0) return [];
+
+    return markets.map((m) => {
+      const dayVal = typeof m.dayChangePercent === 'number' ? m.dayChangePercent : (typeof m.change24h === 'number' ? m.change24h : 0);
+      const weekVal = typeof m.weekChangePercent === 'number' ? m.weekChangePercent : 0;
+      const hourVal = typeof m.hourChangePercent === 'number' ? m.hourChangePercent : 0;
+
+      const changeVal = dayVal !== 0 ? dayVal : (weekVal !== 0 ? weekVal : hourVal);
+      const symbol = cleanSymbol(m.symbol || m.display_symbol || m.name);
+
+      return {
+        symbol,
+        change: `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)}%`,
+        isUp: changeVal >= 0
+      };
+    }).filter(item => Boolean(item.symbol));
+  }, [markets]);
 
   const toggleTheme = () => {
     const newMode = !isLightMode;
@@ -41,12 +73,12 @@ export default function MobileLayout({ children, disablePadding = false }) {
     document.body.classList.toggle('light-mode');
   };
 
-  const handleConnectWallet = () => {
-    const nextState = !isConnected;
-    setIsConnected(nextState);
-    localStorage.setItem('brokex_wallet_connected', String(nextState));
-    // Dispatch custom event to notify other components instantly
-    window.dispatchEvent(new Event('wallet_connection_changed'));
+  const handleWalletClick = () => {
+    if (isConnected) {
+      if (openAccountModal) openAccountModal();
+    } else {
+      if (openConnectModal) openConnectModal();
+    }
   };
 
   return (
@@ -84,9 +116,13 @@ export default function MobileLayout({ children, disablePadding = false }) {
 
         .mobile-ticker-track {
           display: flex;
-          gap: 18px;
-          animation: ticker-marquee 18s linear infinite;
+          gap: 24px;
+          animation: ticker-marquee 50s linear infinite;
           white-space: nowrap;
+        }
+
+        .mobile-ticker-track:hover {
+          animation-play-state: paused;
         }
 
         .mobile-ticker-item {
@@ -155,18 +191,18 @@ export default function MobileLayout({ children, disablePadding = false }) {
         }
 
         .mobile-wallet-btn {
-          background: var(--gold);
-          color: #000;
-          border: 1px solid var(--gold);
-          padding: 6px 12px;
+          background: #BC8961;
+          color: #000000;
+          border: 1px solid #BC8961;
+          padding: 5px 12px;
           border-radius: 6px;
-          font-size: 11px;
-          font-weight: 500;
+          font-size: 11.5px;
+          font-weight: 700;
           display: flex;
           align-items: center;
           cursor: pointer;
           transition: all 0.2s;
-          box-shadow: 0 2px 8px rgba(200, 169, 126, 0.2);
+          box-shadow: 0 2px 8px rgba(188, 137, 97, 0.3);
         }
 
         .mobile-wallet-btn:active {
@@ -174,12 +210,12 @@ export default function MobileLayout({ children, disablePadding = false }) {
         }
 
         .mobile-wallet-btn.connected {
-          background: rgba(200, 169, 126, 0.08);
-          color: var(--gold);
-          border: 1px solid rgba(200, 169, 126, 0.3);
+          background: rgba(188, 137, 97, 0.12);
+          color: #BC8961;
+          border: 1px solid rgba(188, 137, 97, 0.4);
           box-shadow: none;
           font-family: 'Source Code Pro', monospace;
-          font-weight: 500;
+          font-weight: 600;
         }
 
         .mobile-content {
@@ -203,7 +239,7 @@ export default function MobileLayout({ children, disablePadding = false }) {
         {/* Center: Gliding price ticker marquee */}
         <div className="mobile-ticker-container">
           <div className="mobile-ticker-track">
-            {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, idx) => (
+            {[...tickerItems, ...tickerItems].map((item, idx) => (
               <div key={idx} className="mobile-ticker-item">
                 <span style={{ color: 'var(--text-grey)' }}>[</span>
                 <span style={{ color: 'var(--text-dark)' }}>{item.symbol}</span>
@@ -219,25 +255,25 @@ export default function MobileLayout({ children, disablePadding = false }) {
           {/* Theme Toggle */}
           <button className="mobile-action-btn" onClick={toggleTheme}>
             {isLightMode ? (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
             ) : (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
             )}
           </button>
 
           {/* Wallet Button */}
-          <button 
+          <button
             className={`mobile-wallet-btn ${isConnected ? 'connected' : ''}`}
-            onClick={handleConnectWallet}
+            onClick={handleWalletClick}
             style={{ fontWeight: '500' }}
           >
-            {isConnected ? '0x7a...4d' : 'Connect Wallet'}
+            {isConnected && address ? `${address.slice(0, 4)}...${address.slice(-2)}` : 'Connect'}
           </button>
         </div>
       </header>
 
       {/* Page Content */}
-      <main 
+      <main
         className="mobile-content"
         style={disablePadding ? {
           padding: 0,

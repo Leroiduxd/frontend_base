@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import ReferralModal from './ReferralModal';
 
 export default function Sidebar() {
   const location = useLocation();
   const activePath = location.pathname;
+  const [isReferralOpen, setIsReferralOpen] = useState(false);
 
   const menuItems = [
     { 
@@ -12,33 +15,6 @@ export default function Sidebar() {
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="m7 21-4-4 4-4" /><path d="M3 17h18" /><path d="m17 3 4 4-4 4" /><path d="M21 7H3" />
-        </svg>
-      )
-    },
-    { 
-      path: '/portfolio', 
-      label: 'Portfolio', 
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect width="20" height="14" x="2" y="7" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-        </svg>
-      )
-    },
-    { 
-      path: '/market', 
-      label: 'Markets', 
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" />
-        </svg>
-      )
-    },
-    { 
-      path: '/vault', 
-      label: 'Vault', 
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect width="18" height="18" x="3" y="3" rx="2" /><circle cx="12" cy="12" r="3" /><path d="m14 10 2-2" /><path d="m10 14-2 2" /><path d="m14 14 2 2" /><path d="m10 10-2-2" />
         </svg>
       )
     }
@@ -94,9 +70,13 @@ export default function Sidebar() {
           justify-content: center;
           cursor: pointer;
           transition: all 0.2s;
+          position: relative;
         }
         .wallet-btn:hover {
           color: var(--text-dark);
+        }
+        .wallet-btn.connected {
+          color: var(--gold);
         }
         .logo-container {
           width: 40px;
@@ -118,10 +98,25 @@ export default function Sidebar() {
             key={item.path}
             to={item.path} 
             className={`sidebar-item ${activePath === item.path ? 'active' : ''}`}
+            title={item.label}
           >
             {item.icon}
           </Link>
         ))}
+
+        {/* Referral Program Button */}
+        <div 
+          className={`sidebar-item ${isReferralOpen ? 'active' : ''}`}
+          onClick={() => setIsReferralOpen(true)}
+          title="Referral Program"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        </div>
       </nav>
 
       {/* Bottom Actions */}
@@ -135,13 +130,86 @@ export default function Sidebar() {
           )}
         </div>
 
-        {/* Wallet Button */}
-        <button className="wallet-btn" title="Connect Wallet">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect width="18" height="14" x="3" y="5" rx="3" /><path d="M16 12h3" /><path d="M21 9v6" />
-          </svg>
-        </button>
+        {/* RainbowKit Connect Button */}
+        <ConnectButton.Custom>
+          {({
+            account,
+            chain,
+            openAccountModal,
+            openChainModal,
+            openConnectModal,
+            mounted,
+          }) => {
+            const ready = mounted;
+            const connected = ready && account && chain;
+
+            return (
+              <div
+                {...(!ready && {
+                  'aria-hidden': true,
+                  style: {
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    userSelect: 'none',
+                  },
+                })}
+              >
+                {(() => {
+                  if (!connected) {
+                    return (
+                      <button
+                        onClick={openConnectModal}
+                        type="button"
+                        className="wallet-btn"
+                        title="Connect Wallet"
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect width="18" height="14" x="3" y="5" rx="3" /><path d="M16 12h3" /><path d="M21 9v6" />
+                        </svg>
+                      </button>
+                    );
+                  }
+
+                  if (chain.unsupported) {
+                    return (
+                      <button
+                        onClick={openChainModal}
+                        type="button"
+                        className="wallet-btn"
+                        title="Wrong network"
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect width="18" height="14" x="3" y="5" rx="3" /><path d="M16 12h3" /><path d="M21 9v6" />
+                        </svg>
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <button
+                      onClick={openAccountModal}
+                      type="button"
+                      className="wallet-btn connected"
+                      title={`${account.displayName} (${account.displayBalance ?? ''})`}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect width="18" height="14" x="3" y="5" rx="3" /><path d="M16 12h3" /><path d="M21 9v6" />
+                      </svg>
+                    </button>
+                  );
+                })()}
+              </div>
+            );
+          }}
+        </ConnectButton.Custom>
       </div>
+
+      {/* Referral Program Modal */}
+      <ReferralModal
+        isOpen={isReferralOpen}
+        onClose={() => setIsReferralOpen(false)}
+      />
     </div>
   );
 }
+

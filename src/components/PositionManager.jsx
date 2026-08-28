@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 const goldAccent = '#BC8961';
 const goldAccentLight = 'rgba(188, 137, 97, 0.15)';
 
-export default function PositionManager({ position, isOpen, onClose }) {
+export default function PositionManager({ position, isOpen, onClose, onCloseMarket, onCancelOrder }) {
   const [position_win, setPositionWin] = useState({ x: window.innerWidth / 2 - 370, y: window.innerHeight / 2 - 260 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -15,6 +15,7 @@ export default function PositionManager({ position, isOpen, onClose }) {
   const [slValue, setSlValue] = useState(position?.sl || '');
   const [marginAction, setMarginAction] = useState('add');
   const [marginAmount, setMarginAmount] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const containerRef = useRef(null);
 
@@ -25,6 +26,23 @@ export default function PositionManager({ position, isOpen, onClose }) {
       setSlValue(position?.sl?.replace('$', '') || '');
     }
   }, [isOpen, position]);
+
+  const handleAction = async () => {
+    if (!position) return;
+    setIsProcessing(true);
+    try {
+      if (activeTab === 'close') {
+        if (onCloseMarket) {
+          await onCloseMarket(position.tradeId);
+          onClose();
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleMouseDown = (e) => {
     if (!e.target.closest('button') && !e.target.closest('input') && !e.target.closest('a') && !e.target.closest('input[type="range"]')) {
@@ -173,13 +191,13 @@ export default function PositionManager({ position, isOpen, onClose }) {
       <div style={{ flex: '1', background: 'rgba(255,255,255,0.01)', padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: '15px', borderRight: '1px solid var(--border-color)', maxHeight: '550px', overflowY: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: '40px', height: '40px', background: goldAccent, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '16px', color: '#000' }}>
-            {position.asset.split('/')[0]}
+            {(position.asset || 'XAU').split('/')[0]}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--text-dark)' }}>{position.asset}</span>
+            <span style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--text-dark)' }}>{position.asset || 'XAU/USD'}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '10px', padding: '1px 4px', borderRadius: '3px', background: position.side === 'Long' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: position.side === 'Long' ? '#3b82f6' : '#ef4444', fontWeight: 'bold' }}>{position.side.toUpperCase()}</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-grey)', fontWeight: 'bold' }}>{position.leverage}</span>
+              <span style={{ fontSize: '10px', padding: '1px 4px', borderRadius: '3px', background: (position.side || 'Long') === 'Long' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: (position.side || 'Long') === 'Long' ? '#3b82f6' : '#ef4444', fontWeight: 'bold' }}>{(position.side || 'Long').toUpperCase()}</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-grey)', fontWeight: 'bold' }}>{position.leverage || '5x'}</span>
             </div>
           </div>
         </div>
@@ -188,9 +206,9 @@ export default function PositionManager({ position, isOpen, onClose }) {
         <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '8px', padding: '14px', border: '1px solid var(--border-color)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
             <span className="info-label">Unrealized PnL</span>
-            <span style={{ color: position.pnlUsd.startsWith('+') ? '#3b82f6' : '#ef4444', fontWeight: 'bold', fontFamily: 'Source Code Pro', fontSize: '18px' }}>{position.pnlUsd}</span>
+            <span style={{ color: (position.pnlUsd || '').startsWith('+') ? '#3b82f6' : '#ef4444', fontWeight: 'bold', fontFamily: 'Source Code Pro', fontSize: '18px' }}>{position.pnlUsd || '—'}</span>
           </div>
-          <div style={{ textAlign: 'right', fontSize: '12px', color: position.pnlUsd.startsWith('+') ? '#3b82f6' : '#ef4444', opacity: 0.8 }}>{position.pnlPct}</div>
+          <div style={{ textAlign: 'right', fontSize: '12px', color: (position.pnlUsd || '').startsWith('+') ? '#3b82f6' : '#ef4444', opacity: 0.8 }}>{position.pnlPct || '—'}</div>
         </div>
 
         {/* DETAILS LIST */}
@@ -198,61 +216,47 @@ export default function PositionManager({ position, isOpen, onClose }) {
           <div className="section-title">Trade Identification</div>
           <div className="detail-row">
             <span className="info-label">Trade ID</span>
-            <span className="info-value" style={{ color: goldAccent }}>{position.id}</span>
+            <span className="info-value" style={{ color: goldAccent }}>{position.id || '—'}</span>
           </div>
           <div className="detail-row">
             <span className="info-label">Wallet</span>
-            <span className="info-value">0x71...f2e9</span>
+            <span className="info-value">{position.raw?.trader ? `${position.raw.trader.slice(0, 6)}...${position.raw.trader.slice(-4)}` : '—'}</span>
           </div>
           <div className="detail-row">
-            <span className="info-label">Open Time</span>
-            <span className="info-value">2024-05-16 14:22:10</span>
+            <span className="info-label">Status</span>
+            <span className="info-value">{position.status || 'OPEN'}</span>
           </div>
 
           <div className="section-title">Position Metrics</div>
           <div className="detail-row">
             <span className="info-label">Size (USD)</span>
-            <span className="info-value">{position.size}</span>
+            <span className="info-value">{position.size || '—'}</span>
           </div>
           <div className="detail-row">
             <span className="info-label">Collateral</span>
-            <span className="info-value">{position.collateral}</span>
+            <span className="info-value">{position.collateral || '—'}</span>
           </div>
           <div className="detail-row">
-            <span className="info-label">Net Value</span>
-            <span className="info-value" style={{ color: 'var(--text-dark)', fontWeight: 'bold' }}>$625.40</span>
+            <span className="info-label">Entry Price</span>
+            <span className="info-value" style={{ color: 'var(--text-dark)', fontWeight: 'bold' }}>{position.entryPrice || '—'}</span>
           </div>
           <div className="detail-row">
-            <span className="info-label">Margin Ratio</span>
-            <span className="info-value" style={{ color: goldAccent }}>2.04%</span>
+            <span className="info-label">Market Price</span>
+            <span className="info-value" style={{ color: goldAccent }}>{position.marketPrice || '—'}</span>
           </div>
 
           <div className="section-title">Risk Management</div>
           <div className="detail-row">
             <span className="info-label">Liq. Price</span>
-            <span className="info-value" style={{ color: '#ef4444' }}>{position.liqPrice}</span>
+            <span className="info-value" style={{ color: '#ef4444' }}>{position.liqPrice || '—'}</span>
           </div>
           <div className="detail-row">
-            <span className="info-label">Distance to Liq.</span>
-            <span className="info-value" style={{ color: '#ef4444' }}>1.28%</span>
+            <span className="info-label">Stop Loss</span>
+            <span className="info-value">{position.sl || '—'}</span>
           </div>
           <div className="detail-row">
-            <span className="info-label">Max Drawdown</span>
-            <span className="info-value">-$42.10</span>
-          </div>
-
-          <div className="section-title">Costs & Fees</div>
-          <div className="detail-row">
-            <span className="info-label">Funding Fee</span>
-            <span className="info-value" style={{ color: '#ef4444' }}>-$1.42</span>
-          </div>
-          <div className="detail-row">
-            <span className="info-label">Borrow Rate</span>
-            <span className="info-value">0.0024% / hr</span>
-          </div>
-          <div className="detail-row">
-            <span className="info-label">Realized PnL</span>
-            <span className="info-value">$0.00</span>
+            <span className="info-label">Take Profit</span>
+            <span className="info-value">{position.tp || '—'}</span>
           </div>
         </div>
       </div>
@@ -367,9 +371,31 @@ export default function PositionManager({ position, isOpen, onClose }) {
 
         {/* Action Button */}
         <button
-          style={{ width: '100%', padding: '14px', background: goldAccent, border: 'none', borderRadius: '6px', color: '#fff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', transition: 'opacity 0.2s', marginTop: 'auto' }}
+          onClick={handleAction}
+          disabled={isProcessing}
+          style={{
+            width: '100%',
+            padding: '14px',
+            background: goldAccent,
+            border: 'none',
+            borderRadius: '6px',
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            cursor: isProcessing ? 'not-allowed' : 'pointer',
+            opacity: isProcessing ? 0.7 : 1,
+            transition: 'opacity 0.2s',
+            marginTop: 'auto'
+          }}
         >
-          {activeTab === 'close' ? `Close ${closeAmount}% Position` : activeTab === 'collateral' ? `${marginAction === 'add' ? 'Add' : 'Remove'} Margin` : 'Update TP/SL'}
+          {isProcessing
+            ? 'Processing...'
+            : activeTab === 'close'
+              ? `Close Market Position`
+              : activeTab === 'collateral'
+                ? `${marginAction === 'add' ? 'Add' : 'Remove'} Margin`
+                : 'Update TP/SL'
+          }
         </button>
       </div>
     </div>

@@ -7,9 +7,11 @@ import Positions from '../components/Positions'
 import OrderPanel from '../components/OrderPanel'
 import Ticker from '../components/Ticker'
 import MarketSelector from '../components/MarketSelector'
+import { useMarketData } from '../context/MarketDataContext'
 
 export default function Trade() {
   const [isMarketSelectorOpen, setIsMarketSelectorOpen] = useState(false)
+  const { showOrderBook } = useMarketData()
   const isDragging = useRef(false)
 
   useEffect(() => {
@@ -62,11 +64,11 @@ export default function Trade() {
   }, [])
 
   return (
-    <div className="app-layout">
+    <div className={`app-layout ${!showOrderBook ? 'hide-orderbook' : ''}`}>
       <Sidebar />
       <TopNav onOpenMarket={() => setIsMarketSelectorOpen(true)} />
       <Chart />
-      <OrderBook />
+      {showOrderBook && <OrderBook />}
       <div
         className="resizer"
         onMouseDown={(e) => {

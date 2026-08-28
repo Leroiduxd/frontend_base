@@ -1,27 +1,242 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useAccount, useWriteContract } from 'wagmi';
+import { api } from '../../services/api';
+import { useMarketData } from '../../context/MarketDataContext';
+import { useNotifications } from '../../context/NotificationContext';
+import { brokexCoreAbi } from '../../abi/brokexCoreAbi';
 
 const goldAccent = '#BC8961';
 const sellColor = '#ef4444'; // red
 
 export default function MobilePositions({ onManagePosition, isFullPage = false }) {
+  const { address, isConnected } = useAccount();
+  const { network, isMainnet, goldPrice } = useMarketData();
+  const { showNotification } = useNotifications();
+  const { writeContractAsync } = useWriteContract();
+
   const [activeTab, setActiveTab] = useState('open');
+  const [traderTrades, setTraderTrades] = useState([]);
+  const [actionLoadingId, setActionLoadingId] = useState(null);
 
-  const positions = [
-    { id: '#8492', asset: 'XAU/USD', side: 'Long', size: '$25,000', leverage: '50x', collateral: '$500', liqPrice: '$2,285.50', sl: '$2,300.00', tp: '$2,350.00', marketPrice: '$2,315.10', pnlUsd: '+$125.40', pnlPct: '+25.08%' },
-    { id: '#8493', asset: 'BTC/USDC', side: 'Short', size: '$12,500', leverage: '25x', collateral: '$500', liqPrice: '$84,200', sl: '$82,000', tp: '$75,000', marketPrice: '$79,048', pnlUsd: '+$340.20', pnlPct: '+68.04%' },
-  ];
+  const coreAddress = isMainnet
+    ? (import.meta.env.VITE_BROKEX_CORE_MAINNET || '0x0000000000000000000000000000000000000000')
+    : (import.meta.env.VITE_BROKEX_CORE_TESTNET || '0x857d46e2e571f02180deE41A305e8a1007AE473E');
 
-  const orders = [
-    { id: '#7102', asset: 'SOL/USDC', side: 'Long', size: '$5,000', leverage: '10x', collateral: '$500', liqPrice: '$124.50', sl: '$130.00', tp: '$180.00', orderPrice: '$145.00', status: 'Pending' },
-    { id: '#7105', asset: 'ETH/USDC', side: 'Short', size: '$8,000', leverage: '20x', collateral: '$400', liqPrice: '$3,850', sl: '$3,600', tp: '$2,800', orderPrice: '$3,420', status: 'Pending' },
-  ];
+  // Polling des trades du trader connecté
+  useEffect(() => {
+    if (!isConnected || !address) {
+      setTraderTrades([]);
+      return;
+    }
 
-  const history = [
-    { id: '#4421', asset: 'BTC/USDC', side: 'Long', size: '$10,000', leverage: '20x', collateral: '$500', liqPrice: '—', sl: '—', tp: '—', closePrice: '$68,400', pnlUsd: '+$840.00', pnlPct: '+168.00%' },
-    { id: '#4398', asset: 'XAU/USD', side: 'Short', size: '$50,000', leverage: '100x', collateral: '$500', liqPrice: '—', sl: '—', tp: '—', closePrice: '$2,340.50', pnlUsd: '-$120.50', pnlPct: '-24.10%' },
-  ];
+    let isMounted = true;
+    const fetchTraderData = async () => {
+      try {
+        const res = await api.getTraderTrades(address, network);
+        if (!isMounted) return;
+        if (res && Array.isArray(res.trades)) {
+          setTraderTrades(res.trades);
+        } else {
+          setTraderTrades([]);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch mobile trader trades:", err);
+      }
+    };
 
-  const currentList = activeTab === 'open' ? positions : activeTab === 'orders' ? orders : history;
+    fetchTraderData();
+    const interval = setInterval(fetchTraderData, 3000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [isConnected, address, network]);
+
+  // Fermer une position au marché
+  const handleCloseMarket = async (tradeId) => {
+    if (!isConnected || !address) return;
+    setActionLoadingId(`close-${tradeId}`);
+    showNotification(`Closing market position #${tradeId}...`, "info", null, 3000, "XAU");
+
+    try {
+      const paymasterUrl = isMainnet
+        ? import.meta.env.VITE_PAYMASTER_URL_MAINNET
+        : import.meta.env.VITE_PAYMASTER_URL_TESTNET;
+
+      const capabilities = paymasterUrl && !paymasterUrl.includes('YOUR_CDP_API_KEY') ? {
+        paymasterService: {
+          url: paymasterUrl
+        }
+      } : undefined;
+
+      const proofRes = await api.getProof(network);
+      if (!proofRes || !Array.isArray(proofRes.priceUpdateData) || proofRes.priceUpdateData.length === 0) {
+        throw new Error("Unable to fetch oracle price proof.");
+      }
+
+      const txHash = await writeContractAsync({
+        address: coreAddress,
+        abi: brokexCoreAbi,
+        functionName: 'closeMarket',
+        args: [BigInt(tradeId), proofRes.priceUpdateData],
+        capabilities,
+      });
+
+      showNotification(`Position #${tradeId} closed successfully!`, "success", txHash, 7000, "XAU");
+    } catch (err) {
+      console.error("Mobile close market error:", err);
+      const msg = err?.shortMessage || err?.message || "Failed to close position";
+      showNotification(msg.length > 90 ? msg.slice(0, 90) + '...' : msg, "error", null, 6000, "XAU");
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  // Annuler un ordre
+  const handleCancelOrder = async (tradeId) => {
+    if (!isConnected || !address) return;
+    setActionLoadingId(`cancel-${tradeId}`);
+    showNotification(`Cancelling order #${tradeId}...`, "info", null, 3000, "XAU");
+
+    try {
+      const paymasterUrl = isMainnet
+        ? import.meta.env.VITE_PAYMASTER_URL_MAINNET
+        : import.meta.env.VITE_PAYMASTER_URL_TESTNET;
+
+      const capabilities = paymasterUrl && !paymasterUrl.includes('YOUR_CDP_API_KEY') ? {
+        paymasterService: {
+          url: paymasterUrl
+        }
+      } : undefined;
+
+      const txHash = await writeContractAsync({
+        address: coreAddress,
+        abi: brokexCoreAbi,
+        functionName: 'cancel',
+        args: [BigInt(tradeId)],
+        capabilities,
+      });
+
+      showNotification(`Order #${tradeId} cancelled successfully!`, "success", txHash, 7000, "XAU");
+    } catch (err) {
+      console.error("Mobile cancel order error:", err);
+      const msg = err?.shortMessage || err?.message || "Failed to cancel order";
+      showNotification(msg.length > 90 ? msg.slice(0, 90) + '...' : msg, "error", null, 6000, "XAU");
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  // Formatage des données de trading (aligné exactement avec Positions.jsx PC)
+  const formattedTrades = useMemo(() => {
+    const currentMark = goldPrice || 2315.10;
+
+    return traderTrades.map((t) => {
+      const isLong = t.directionName === 'LONG' || t.direction === '1' || t.direction === 1;
+      const side = isLong ? 'Long' : 'Short';
+      const lev = t.leverage ? `${t.leverage}x` : '5x';
+      const levNum = Number(t.leverage || 5);
+
+      // Collateral & Size (6 décimales USDC)
+      const collatNum = t.margin ? Number(t.margin) / 1e6 : (t.collateral ? Number(t.collateral) / 1e6 : 0);
+      const collateralStr = `$${collatNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+      const oiNum = t.openInterest ? Number(t.openInterest) / 1e6 : collatNum * levNum;
+      const sizeStr = `$${oiNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+      // Prix (6 décimales Pyth)
+      const entryPriceNum = t.executionPriceOpen ? Number(t.executionPriceOpen) / 1e6 : (t.oraclePriceOpen ? Number(t.oraclePriceOpen) / 1e6 : null);
+      const closePriceNum = t.executionPriceClose ? Number(t.executionPriceClose) / 1e6 : (t.oraclePriceClose ? Number(t.oraclePriceClose) / 1e6 : null);
+      const targetPriceNum = t.targetPrice && Number(t.targetPrice) > 0 ? Number(t.targetPrice) / 1e6 : null;
+
+      const entryPriceStr = entryPriceNum ? `$${entryPriceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
+      const closePriceStr = closePriceNum ? `$${closePriceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
+      const orderPriceStr = targetPriceNum ? `$${targetPriceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
+      const marketPriceStr = `$${currentMark.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+      // TP & SL
+      const tpNum = t.currentTakeProfit && Number(t.currentTakeProfit) > 0 ? Number(t.currentTakeProfit) / 1e6 : null;
+      const slNum = t.currentStopLoss && Number(t.currentStopLoss) > 0 ? Number(t.currentStopLoss) / 1e6 : null;
+      const tpStr = tpNum ? `$${tpNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
+      const slStr = slNum ? `$${slNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
+
+      // Liquidation Price approximatif
+      let liqPriceStr = '—';
+      if (entryPriceNum) {
+        const liq = isLong
+          ? entryPriceNum * (1 - 0.9 / levNum)
+          : entryPriceNum * (1 + 0.9 / levNum);
+        liqPriceStr = `$${liq.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      }
+
+      // PnL Calculation
+      let pnlUsd = '—';
+      let pnlPct = '—';
+      let isProfit = true;
+
+      if (t.status === 'CLOSED') {
+        const finalPnlNum = t.finalPnl ? Number(t.finalPnl) / 1e6 : 0;
+        isProfit = finalPnlNum >= 0;
+        pnlUsd = `${isProfit ? '+' : ''}$${finalPnlNum.toFixed(2)}`;
+        const pct = collatNum > 0 ? (finalPnlNum / collatNum) * 100 : 0;
+        pnlPct = `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
+      } else if (t.status === 'CREATED' || t.status === 'OPEN') {
+        if (entryPriceNum && currentMark) {
+          const priceDiff = isLong ? (currentMark - entryPriceNum) : (entryPriceNum - currentMark);
+          const unrealizedPnl = (priceDiff / entryPriceNum) * oiNum;
+          isProfit = unrealizedPnl >= 0;
+          pnlUsd = `${isProfit ? '+' : ''}$${unrealizedPnl.toFixed(2)}`;
+          const pct = collatNum > 0 ? (unrealizedPnl / collatNum) * 100 : 0;
+          pnlPct = `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
+        }
+      }
+
+      return {
+        raw: t,
+        id: `#${t.tradeId}`,
+        tradeId: t.tradeId,
+        asset: 'XAU/USD',
+        side,
+        isLong,
+        size: sizeStr,
+        leverage: lev,
+        collateral: collateralStr,
+        entryPrice: entryPriceStr,
+        marketPrice: marketPriceStr,
+        orderPrice: orderPriceStr,
+        closePrice: closePriceStr,
+        liqPrice: liqPriceStr,
+        sl: slStr,
+        tp: tpStr,
+        pnlUsd,
+        pnlPct,
+        isProfit,
+        status: t.status,
+        orderTypeName: t.orderTypeName || (t.orderType === '1' || t.orderType === 1 ? 'LIMIT' : t.orderType === '2' || t.orderType === 2 ? 'STOP' : 'MARKET')
+      };
+    });
+  }, [traderTrades, goldPrice]);
+
+  const openPositions = useMemo(() => {
+    return formattedTrades
+      .filter(t => t.status === 'OPEN')
+      .sort((a, b) => Number(b.tradeId) - Number(a.tradeId));
+  }, [formattedTrades]);
+
+  const pendingOrders = useMemo(() => {
+    return formattedTrades
+      .filter(t => t.status === 'CREATED')
+      .sort((a, b) => Number(b.tradeId) - Number(a.tradeId));
+  }, [formattedTrades]);
+
+  const historyPositions = useMemo(() => {
+    return formattedTrades
+      .filter(t => t.status === 'CLOSED' || t.status === 'CANCELLED' || t.status === 'LIQUIDATED')
+      .sort((a, b) => Number(b.tradeId) - Number(a.tradeId));
+  }, [formattedTrades]);
+
+  const currentList = activeTab === 'open' ? openPositions : activeTab === 'orders' ? pendingOrders : historyPositions;
 
   return (
     <div style={{
@@ -50,14 +265,17 @@ export default function MobilePositions({ onManagePosition, isFullPage = false }
         scrollbarWidth: 'none',
         msOverflowStyle: 'none'
       }}>
-        {['open', 'orders', 'history'].map(tab => {
-          const count = tab === 'open' ? positions.length : tab === 'orders' ? orders.length : history.length;
-          const isActive = activeTab === tab;
-          const labelText = tab === 'open' ? `Open (${count})` : tab === 'orders' ? `Orders (${count})` : `History (${count})`;
+        {[
+          { key: 'open', label: 'Open', count: openPositions.length },
+          { key: 'orders', label: 'Orders', count: pendingOrders.length },
+          { key: 'history', label: 'History', count: historyPositions.length }
+        ].map(tab => {
+          const isActive = activeTab === tab.key;
+          const labelText = `${tab.label} (${tab.count})`;
           return (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
               style={{
                 background: 'transparent',
                 border: 'none',
@@ -88,14 +306,18 @@ export default function MobilePositions({ onManagePosition, isFullPage = false }
         maxHeight: 'none',
         overflow: 'visible'
       }}>
-        {currentList.length === 0 ? (
+        {!isConnected ? (
+          <div style={{ textAlign: 'center', padding: '30px 12px', color: 'var(--text-grey)', fontSize: '11px' }}>
+            CONNECT YOUR WALLET TO VIEW POSITIONS
+          </div>
+        ) : currentList.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-grey)', fontSize: '11px' }}>
-            NO ACTIVE ITEMS
+            NO ACTIVE {activeTab.toUpperCase()} ITEMS
           </div>
         ) : (
           currentList.map((item, idx) => (
             <div 
-              key={idx}
+              key={item.id || idx}
               style={{
                 background: 'transparent',
                 borderBottom: idx !== currentList.length - 1 ? '1px solid var(--border-color)' : 'none',
@@ -178,8 +400,8 @@ export default function MobilePositions({ onManagePosition, isFullPage = false }
                       <span style={{ fontWeight: '500', fontFamily: 'Source Code Pro' }}>{item.closePrice}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: 'var(--text-grey)' }}>Closed:</span>
-                      <span style={{ color: 'var(--text-grey)', fontWeight: 'bold' }}>Settled</span>
+                      <span style={{ color: 'var(--text-grey)' }}>Status:</span>
+                      <span style={{ color: item.status === 'CLOSED' ? '#3b82f6' : 'var(--text-grey)', fontWeight: 'bold' }}>{item.status}</span>
                     </div>
                   </>
                 )}
@@ -222,7 +444,7 @@ export default function MobilePositions({ onManagePosition, isFullPage = false }
                         fontSize: '12px',
                         fontWeight: 'bold',
                         fontFamily: 'Source Code Pro',
-                        color: item.pnlUsd.startsWith('+') ? '#3b82f6' : '#ef4444'
+                        color: item.isProfit ? '#3b82f6' : '#ef4444'
                       }}>
                         {item.pnlUsd} <span style={{ fontSize: '10px', fontWeight: '500' }}>({item.pnlPct})</span>
                       </span>
@@ -232,41 +454,28 @@ export default function MobilePositions({ onManagePosition, isFullPage = false }
 
                 <div style={{ display: 'flex', gap: '6px' }}>
                   {activeTab === 'open' && (
-                    <>
-                      <button
-                        onClick={() => onManagePosition(item, 'collateral')}
-                        style={{
-                          background: 'transparent',
-                          border: '1px solid var(--border-color)',
-                          color: 'var(--text-dark)',
-                          borderRadius: '4px',
-                          fontSize: '10px',
-                          fontWeight: 'bold',
-                          padding: '4px 8px',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        + MARGIN
-                      </button>
-                      <button
-                        onClick={() => onManagePosition(item, 'close')}
-                        style={{
-                          background: 'transparent',
-                          border: `1px solid ${sellColor}`,
-                          color: sellColor,
-                          borderRadius: '4px',
-                          fontSize: '10px',
-                          fontWeight: 'bold',
-                          padding: '4px 8px',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        CLOSE
-                      </button>
-                    </>
+                    <button
+                      onClick={() => handleCloseMarket(item.tradeId)}
+                      disabled={actionLoadingId === `close-${item.tradeId}`}
+                      style={{
+                        background: 'transparent',
+                        border: `1px solid ${sellColor}`,
+                        color: sellColor,
+                        borderRadius: '4px',
+                        fontSize: '10px',
+                        fontWeight: 'bold',
+                        padding: '4px 10px',
+                        cursor: actionLoadingId === `close-${item.tradeId}` ? 'not-allowed' : 'pointer',
+                        opacity: actionLoadingId === `close-${item.tradeId}` ? 0.6 : 1
+                      }}
+                    >
+                      {actionLoadingId === `close-${item.tradeId}` ? '...' : 'CLOSE'}
+                    </button>
                   )}
                   {activeTab === 'orders' && (
                     <button
+                      onClick={() => handleCancelOrder(item.tradeId)}
+                      disabled={actionLoadingId === `cancel-${item.tradeId}`}
                       style={{
                         background: 'transparent',
                         border: '1px solid var(--border-color)',
@@ -274,11 +483,12 @@ export default function MobilePositions({ onManagePosition, isFullPage = false }
                         borderRadius: '4px',
                         fontSize: '10px',
                         fontWeight: 'bold',
-                        padding: '4px 8px',
-                        cursor: 'pointer'
+                        padding: '4px 10px',
+                        cursor: actionLoadingId === `cancel-${item.tradeId}` ? 'not-allowed' : 'pointer',
+                        opacity: actionLoadingId === `cancel-${item.tradeId}` ? 0.6 : 1
                       }}
                     >
-                      CANCEL
+                      {actionLoadingId === `cancel-${item.tradeId}` ? '...' : 'CANCEL'}
                     </button>
                   )}
                 </div>
