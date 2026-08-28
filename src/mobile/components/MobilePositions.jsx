@@ -131,6 +131,8 @@ export default function MobilePositions({ onManagePosition, isFullPage = false }
   // Formatage des données de trading (aligné exactement avec Positions.jsx PC)
   const formattedTrades = useMemo(() => {
     const currentMark = goldPrice || 2315.10;
+    const primaryAsset = protocolInfo?.assets?.[0] || protocolInfo;
+    const vaultLiquidity = protocolInfo?.vaultBalance ?? 25000000;
 
     return traderTrades.map((t) => {
       const isLong = t.directionName === 'LONG' || t.direction === '1' || t.direction === 1;
@@ -153,7 +155,25 @@ export default function MobilePositions({ onManagePosition, isFullPage = false }
       const entryPriceStr = entryPriceNum ? `$${entryPriceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
       const closePriceStr = closePriceNum ? `$${closePriceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
       const orderPriceStr = targetPriceNum ? `$${targetPriceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
+
+      // Calcul du spread de sortie spécifique à la taille de la position (isOpening = false)
+      const exitSpreadRes = calculateEstimatedSpreadLocal(
+        primaryAsset,
+        vaultLiquidity,
+        isLong ? 1 : 0,
+        oiNum * 1e6,
+        false
+      );
+
+      const exitSpreadPercent = exitSpreadRes.tradeSpreadPercent;
+      const spreadDecimal = exitSpreadPercent / 100;
+      const estimatedExitPrice = isLong
+        ? currentMark * (1 - spreadDecimal)
+        : currentMark * (1 + spreadDecimal);
+
       const marketPriceStr = `$${currentMark.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const exitPriceStr = `$${estimatedExitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const spreadBpsStr = `${exitSpreadRes.tradeSpreadBps.toFixed(2)} bps (${exitSpreadPercent.toFixed(2)}%)`;
 
       // TP & SL
       const tpNum = t.currentTakeProfit && Number(t.currentTakeProfit) > 0 ? Number(t.currentTakeProfit) / 1e6 : null;
@@ -170,7 +190,7 @@ export default function MobilePositions({ onManagePosition, isFullPage = false }
         liqPriceStr = `$${liq.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       }
 
-      // PnL Calculation
+      // PnL Calculation avec déduction du spread de sortie
       let pnlUsd = '—';
       let pnlPct = '—';
       let isProfit = true;
@@ -183,12 +203,19 @@ export default function MobilePositions({ onManagePosition, isFullPage = false }
         pnlPct = `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
       } else if (t.status === 'CREATED' || t.status === 'OPEN') {
         if (entryPriceNum && currentMark) {
-          const priceDiff = isLong ? (currentMark - entryPriceNum) : (entryPriceNum - currentMark);
-          const unrealizedPnl = (priceDiff / entryPriceNum) * oiNum;
-          isProfit = unrealizedPnl >= 0;
-          pnlUsd = `${isProfit ? '+' : ''}$${unrealizedPnl.toFixed(2)}`;
-          const pct = collatNum > 0 ? (unrealizedPnl / collatNum) * 100 : 0;
-          pnlPct = `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
+          const pnlCalc = calculatePositionPnLWithSpread({
+            isLong,
+            entryPrice: entryPriceNum,
+            currentMarkPrice: currentMark,
+            openInterestUSD: oiNum,
+            collateralUSD: collatNum,
+            closingSpreadPercent: exitSpreadPercent,
+            borrowFeeUSD: t.borrowFee ? Number(t.borrowFee) / 1e6 : 0
+          });
+
+          isProfit = pnlCalc.isProfit;
+          pnlUsd = `${isProfit ? '+' : ''}$${pnlCalc.unrealizedPnlUSD.toFixed(2)}`;
+          pnlPct = `${pnlCalc.unrealizedPnlPercent >= 0 ? '+' : ''}${pnlCalc.unrealizedPnlPercent.toFixed(2)}%`;
         }
       }
 
@@ -204,6 +231,8 @@ export default function MobilePositions({ onManagePosition, isFullPage = false }
         collateral: collateralStr,
         entryPrice: entryPriceStr,
         marketPrice: marketPriceStr,
+        exitPrice: exitPriceStr,
+        spreadBpsStr,
         orderPrice: orderPriceStr,
         closePrice: closePriceStr,
         liqPrice: liqPriceStr,
@@ -216,7 +245,7 @@ export default function MobilePositions({ onManagePosition, isFullPage = false }
         orderTypeName: t.orderTypeName || (t.orderType === '1' || t.orderType === 1 ? 'LIMIT' : t.orderType === '2' || t.orderType === 2 ? 'STOP' : 'MARKET')
       };
     });
-  }, [traderTrades, goldPrice]);
+  }, [traderTrades, goldPrice, protocolInfo]);
 
   const openPositions = useMemo(() => {
     return formattedTrades
@@ -369,9 +398,18 @@ export default function MobilePositions({ onManagePosition, isFullPage = false }
                 
                 {activeTab === 'open' && (
                   <>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: 'var(--text-grey)' }}>Market Price:</span>
-                      <span style={{ fontWeight: '500', fontFamily: 'Source Code Pro' }}>{item.marketPrice}</span>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--text-grey)' }}>Market Price:</span>
+                        <span style={{ fontWeight: '500', fontFamily: 'Source Code Pro' }}>{item.marketPrice}</span>
+                      </div>
+                      {item.spreadBpsStr && (
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                          <span style={{ fontSize: '9px', color: 'var(--text-grey)', opacity: 0.85 }}>
+                            Spr: {item.spreadBpsStr}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ color: 'var(--text-grey)' }}>Liq. Price:</span>

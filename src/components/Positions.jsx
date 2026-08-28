@@ -5,9 +5,11 @@ import { useMarketData } from '../context/MarketDataContext';
 import { useNotifications } from '../context/NotificationContext';
 import { brokexCoreAbi } from '../abi/brokexCoreAbi';
 
+import { calculateEstimatedSpreadLocal, calculatePositionPnLWithSpread } from '../utils/spreadCalculator';
+
 export default function Positions() {
   const { address, isConnected } = useAccount();
-  const { network, isMainnet, goldPrice, showOrderBook, setShowOrderBook } = useMarketData();
+  const { network, isMainnet, goldPrice, protocolInfo, showOrderBook, setShowOrderBook } = useMarketData();
   const { showNotification } = useNotifications();
   const { writeContractAsync } = useWriteContract();
 
@@ -131,12 +133,14 @@ export default function Positions() {
     };
   }, [address, isConnected, network]);
 
-  // Formatter un trade brut reçu de l'API /trader/:address
+  // Formatter un trade brut avec calcul local du spread de sortie et PnL net exact
   const formattedTrades = useMemo(() => {
     const currentMark = goldPrice || 4604.64;
+    const primaryAsset = protocolInfo?.assets?.[0] || protocolInfo;
+    const vaultLiquidity = protocolInfo?.vaultBalance ?? 25000000;
 
     return traderTrades.map((t) => {
-      const isLong = t.directionName === 'LONG' || t.direction === '1';
+      const isLong = t.directionName === 'LONG' || t.direction === '1' || t.direction === 1;
       const side = isLong ? 'Long' : 'Short';
       const lev = t.leverage ? `${t.leverage}x` : '5x';
       const levNum = Number(t.leverage || 5);
@@ -148,7 +152,7 @@ export default function Positions() {
       const oiNum = t.openInterest ? Number(t.openInterest) / 1e6 : collatNum * levNum;
       const sizeStr = `$${oiNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-      // Prix (6 décimales Pyth)
+      // Prix (6 décimales Pyth/Oracle)
       const entryPriceNum = t.executionPriceOpen ? Number(t.executionPriceOpen) / 1e6 : (t.oraclePriceOpen ? Number(t.oraclePriceOpen) / 1e6 : null);
       const closePriceNum = t.executionPriceClose ? Number(t.executionPriceClose) / 1e6 : (t.oraclePriceClose ? Number(t.oraclePriceClose) / 1e6 : null);
       const targetPriceNum = t.targetPrice && Number(t.targetPrice) > 0 ? Number(t.targetPrice) / 1e6 : null;
@@ -156,7 +160,27 @@ export default function Positions() {
       const entryPriceStr = entryPriceNum ? `$${entryPriceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
       const closePriceStr = closePriceNum ? `$${closePriceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
       const orderPriceStr = targetPriceNum ? `$${targetPriceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
+
+      // Calcul du spread de sortie spécifique à la taille de la position (isOpening = false)
+      const exitSpreadRes = calculateEstimatedSpreadLocal(
+        primaryAsset,
+        vaultLiquidity,
+        isLong ? 1 : 0,
+        oiNum * 1e6,
+        false
+      );
+
+      const exitSpreadPercent = exitSpreadRes.tradeSpreadPercent; // ex: 0.0384%
+      const spreadDecimal = exitSpreadPercent / 100;
+      
+      // Prix d'exécution effectif au marché (Bid pour Long, Ask pour Short)
+      const estimatedExitPrice = isLong
+        ? currentMark * (1 - spreadDecimal)
+        : currentMark * (1 + spreadDecimal);
+
       const marketPriceStr = `$${currentMark.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const exitPriceStr = `$${estimatedExitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const spreadBpsStr = `${exitSpreadRes.tradeSpreadBps.toFixed(2)} bps (${exitSpreadPercent.toFixed(2)}%)`;
 
       // TP & SL
       const tpNum = t.currentTakeProfit && Number(t.currentTakeProfit) > 0 ? Number(t.currentTakeProfit) / 1e6 : null;
@@ -173,7 +197,7 @@ export default function Positions() {
         liqPriceStr = `$${liq.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       }
 
-      // PnL Calculation
+      // PnL Calculation intégrant le spread de fermeture
       let pnlUsd = '—';
       let pnlPct = '—';
       let isProfit = true;
@@ -186,12 +210,19 @@ export default function Positions() {
         pnlPct = `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
       } else if (t.status === 'CREATED' || t.status === 'OPEN') {
         if (entryPriceNum && currentMark) {
-          const priceDiff = isLong ? (currentMark - entryPriceNum) : (entryPriceNum - currentMark);
-          const unrealizedPnl = (priceDiff / entryPriceNum) * oiNum;
-          isProfit = unrealizedPnl >= 0;
-          pnlUsd = `${isProfit ? '+' : ''}$${unrealizedPnl.toFixed(2)}`;
-          const pct = collatNum > 0 ? (unrealizedPnl / collatNum) * 100 : 0;
-          pnlPct = `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
+          const pnlCalc = calculatePositionPnLWithSpread({
+            isLong,
+            entryPrice: entryPriceNum,
+            currentMarkPrice: currentMark,
+            openInterestUSD: oiNum,
+            collateralUSD: collatNum,
+            closingSpreadPercent: exitSpreadPercent,
+            borrowFeeUSD: t.borrowFee ? Number(t.borrowFee) / 1e6 : 0
+          });
+
+          isProfit = pnlCalc.isProfit;
+          pnlUsd = `${isProfit ? '+' : ''}$${pnlCalc.unrealizedPnlUSD.toFixed(2)}`;
+          pnlPct = `${pnlCalc.unrealizedPnlPercent >= 0 ? '+' : ''}${pnlCalc.unrealizedPnlPercent.toFixed(2)}%`;
         }
       }
 
@@ -207,6 +238,8 @@ export default function Positions() {
         collateral: collateralStr,
         entryPrice: entryPriceStr,
         marketPrice: marketPriceStr,
+        exitPrice: exitPriceStr,
+        spreadBpsStr,
         orderPrice: orderPriceStr,
         closePrice: closePriceStr,
         liqPrice: liqPriceStr,
@@ -219,7 +252,7 @@ export default function Positions() {
         orderTypeName: t.orderTypeName || (t.orderType === '1' ? 'LIMIT' : t.orderType === '2' ? 'STOP' : 'MARKET')
       };
     });
-  }, [traderTrades, goldPrice]);
+  }, [traderTrades, goldPrice, protocolInfo]);
 
   // Séparation en 3 onglets et tri antéchronologique (du plus récent au plus ancien)
   const openPositions = useMemo(() => {
@@ -387,7 +420,14 @@ export default function Positions() {
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {pos.tp}
               </div>
-              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{pos.marketPrice}</div>
+              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <span>{pos.marketPrice}</span>
+                {pos.spreadBpsStr && (
+                  <span style={{ fontSize: '8.5px', color: 'var(--text-grey)', opacity: 0.85 }}>
+                    Spr: {pos.spreadBpsStr}
+                  </span>
+                )}
+              </div>
               <div style={{ flex: 1.5, textAlign: 'right', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: 'bold', color: pos.isProfit ? '#3b82f6' : '#ef4444' }}>
                 {pos.pnlUsd} <span style={{ fontSize: '9px', opacity: 0.8 }}>({pos.pnlPct})</span>
               </div>

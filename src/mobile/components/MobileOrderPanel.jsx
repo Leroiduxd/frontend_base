@@ -7,6 +7,7 @@ import { useNotifications } from '../../context/NotificationContext';
 import { brokexCoreAbi } from '../../abi/brokexCoreAbi';
 import { api } from '../../services/api';
 import { getSavedReferrer, getEffectiveReferrerToSubmit } from '../../utils/referral';
+import { useSpread } from '../../hooks/useSpread';
 
 // Common Accent Colors (Theme-aware via CSS variables)
 const goldAccent = '#BC8961';
@@ -154,6 +155,21 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
 
   const collatNum = Number(collateralAmount || 0);
   const rawExposureUSD = collatNum * leverage;
+
+  // Calcul instantané du spread via la formule exacte Solidity locale (0 RPC)
+  const {
+    tradeSpreadPercent,
+    spreadFormatted: dynamicSpreadFormatted,
+    longSpreadFormatted: dynamicLongSpreadFormatted,
+    shortSpreadFormatted: dynamicShortSpreadFormatted
+  } = useSpread({
+    direction: side === 'buy' ? 1 : 0,
+    collateralUSD: collatNum,
+    leverage: leverage,
+    isOpening: true,
+    assetId: assetId || 5500
+  });
+
   const commissionRate = (commissionRatePercent || 0.1) / 100;
   const effectiveSizeUSD = rawExposureUSD * (1 - commissionRate);
 
@@ -161,8 +177,12 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
     ? effectiveSizeUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     : (effectiveSizeUSD / currentPrice).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
 
-  const activeSpreadFormatted = side === 'buy' ? longSpreadFormatted : shortSpreadFormatted;
-  const activeSpreadPercent = side === 'buy' ? (longSpreadPercent || 0.05) : (shortSpreadPercent || 0.05);
+  // Pour les ordres Market, le spread s'ajuste dynamiquement à la taille de l'ordre
+  const activeSpreadFormatted = orderType === 'market'
+    ? dynamicSpreadFormatted
+    : (side === 'buy' ? dynamicLongSpreadFormatted : dynamicShortSpreadFormatted);
+
+  const activeSpreadPercent = tradeSpreadPercent || (side === 'buy' ? (longSpreadPercent || 0.0384) : (shortSpreadPercent || 0.0293));
   const spreadFeeUSD = rawExposureUSD * (activeSpreadPercent / 100);
   const openFeeUSD = rawExposureUSD * commissionRate;
   const oracleFeeUSD = 0.00;
