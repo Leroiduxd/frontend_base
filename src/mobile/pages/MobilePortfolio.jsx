@@ -6,6 +6,7 @@ import { useMarketData } from '../../context/MarketDataContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { brokexCoreAbi } from '../../abi/brokexCoreAbi';
 import { useEnsOrBasename, getCleanReferralSlug, EnsName } from '../../utils/ens.js';
+import { getContractAddresses } from '../../utils/contracts';
 
 export default function MobilePortfolio() {
   const { address, isConnected } = useAccount();
@@ -147,13 +148,7 @@ export default function MobilePortfolio() {
 
     try {
       const isMainnet = network === 'mainnet';
-      const coreAddress = isMainnet
-    ? (import.meta.env.VITE_BROKEX_CORE_MAINNET || '0x0000000000000000000000000000000000000000')
-    : (import.meta.env.VITE_BROKEX_CORE_TESTNET || '0x171386dEaBFdd281c29345F12996bA35f1Aed0d2');
-
-      const paymasterUrl = isMainnet
-        ? import.meta.env.VITE_PAYMASTER_URL_MAINNET
-        : import.meta.env.VITE_PAYMASTER_URL_TESTNET;
+      const { core: coreAddress, paymasterUrl } = getContractAddresses(isMainnet);
 
       const capabilities = paymasterUrl && !paymasterUrl.includes('YOUR_CDP_API_KEY') ? {
         paymasterService: {

@@ -3,6 +3,7 @@ import { useAccount, useChainId, useSwitchChain } from 'wagmi';
 import { base, baseSepolia } from 'wagmi/chains';
 import { api } from '../services/api';
 import { isMarketOpenFromSchedule, getNextMarketOpenTime } from '../utils/marketSchedule';
+import { getContractAddresses } from '../utils/contracts';
 
 const MarketDataContext = createContext(null);
 
@@ -181,7 +182,8 @@ export function MarketDataProvider({ children }) {
   const commissionRatePercent = primaryAsset?.commissionRate ? (Number(primaryAsset.commissionRate) / 1000000) * 100 : 0.1;
 
   // 8. Informations du Vault & Métadonnées
-  const vaultAddress = protocolInfo?.vault;
+  const { vault: defaultVaultAddress } = getContractAddresses(isMainnet);
+  const vaultAddress = protocolInfo?.vault || defaultVaultAddress;
   const vaultBalanceUSD = protocolInfo?.vaultBalance ? Number(protocolInfo.vaultBalance) / 1e6 : 0;
   const lockedCapitalUSD = protocolInfo?.lockedCapital ? Number(protocolInfo.lockedCapital) / 1e6 : 0;
   const pythMetadata = primaryAsset?.pythMetadata || protocolInfo?.pythMetadata;

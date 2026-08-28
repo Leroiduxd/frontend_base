@@ -3,8 +3,7 @@ import { useAccount, useWriteContract } from 'wagmi';
 import { api } from '../services/api';
 import { useMarketData } from '../context/MarketDataContext';
 import { useNotifications } from '../context/NotificationContext';
-import { brokexCoreAbi } from '../abi/brokexCoreAbi';
-
+import { getContractAddresses } from '../utils/contracts';
 import { calculateEstimatedSpreadLocal, calculatePositionPnLWithSpread } from '../utils/spreadCalculator';
 
 export default function Positions() {
@@ -20,10 +19,8 @@ export default function Positions() {
   const [traderTrades, setTraderTrades] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Brokex Core Contract Address
-  const coreAddress = isMainnet
-    ? (import.meta.env.VITE_BROKEX_CORE_MAINNET || '0x0000000000000000000000000000000000000000')
-    : (import.meta.env.VITE_BROKEX_CORE_TESTNET || '0x171386dEaBFdd281c29345F12996bA35f1Aed0d2');
+  // Brokex Core Contract Address centralisée depuis le .env
+  const { core: coreAddress, paymasterUrl } = getContractAddresses(isMainnet);
 
   // Fermer une position au marché (closeMarket)
   const handleCloseMarket = async (tradeId) => {
@@ -32,10 +29,6 @@ export default function Positions() {
     showNotification(`Closing market position #${tradeId}...`, "info", null, 3000, "XAU");
 
     try {
-      const paymasterUrl = isMainnet
-        ? import.meta.env.VITE_PAYMASTER_URL_MAINNET
-        : import.meta.env.VITE_PAYMASTER_URL_TESTNET;
-
       const capabilities = paymasterUrl && !paymasterUrl.includes('YOUR_CDP_API_KEY') ? {
         paymasterService: {
           url: paymasterUrl
@@ -420,14 +413,7 @@ export default function Positions() {
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {pos.tp}
               </div>
-              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <span>{pos.marketPrice}</span>
-                {pos.spreadBpsStr && (
-                  <span style={{ fontSize: '8.5px', color: 'var(--text-grey)', opacity: 0.85 }}>
-                    Spr: {pos.spreadBpsStr}
-                  </span>
-                )}
-              </div>
+              <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{pos.marketPrice}</div>
               <div style={{ flex: 1.5, textAlign: 'right', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: 'bold', color: pos.isProfit ? '#3b82f6' : '#ef4444' }}>
                 {pos.pnlUsd} <span style={{ fontSize: '9px', opacity: 0.8 }}>({pos.pnlPct})</span>
               </div>

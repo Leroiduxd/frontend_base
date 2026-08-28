@@ -7,6 +7,7 @@ import { useNotifications } from '../../context/NotificationContext';
 import { brokexCoreAbi } from '../../abi/brokexCoreAbi';
 import { api } from '../../services/api';
 import { getSavedReferrer, getEffectiveReferrerToSubmit } from '../../utils/referral';
+import { getContractAddresses } from '../../utils/contracts';
 import { useSpread } from '../../hooks/useSpread';
 
 // Common Accent Colors (Theme-aware via CSS variables)
@@ -63,10 +64,13 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
     shortSpreadPercent,
     availLiqLongFormatted,
     availLiqShortFormatted,
+    availLiqLongRaw,
+    availLiqShortRaw,
     feedId,
     assetId,
     isMarketOpen,
-    nextOpenTime
+    nextOpenTime,
+    setNetwork
   } = useMarketData();
 
   const { showNotification } = useNotifications();
@@ -75,13 +79,8 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
 
-  const coreAddress = isMainnet
-    ? (import.meta.env.VITE_BROKEX_CORE_MAINNET || '0x0000000000000000000000000000000000000000')
-    : (import.meta.env.VITE_BROKEX_CORE_TESTNET || '0x171386dEaBFdd281c29345F12996bA35f1Aed0d2');
-
-  const usdcAddress = isMainnet
-    ? (import.meta.env.VITE_USDC_MAINNET || '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913')
-    : (import.meta.env.VITE_USDC_TESTNET || '0x036CbD53842c5426634e7929541eC2318f3dCF7e');
+  // Adresses centralisées depuis le .env
+  const { core: coreAddress, usdc: usdcAddress } = getContractAddresses(isMainnet);
 
   const { data: rawUsdcBalance, refetch: refetchUsdc } = useReadContract({
     address: usdcAddress,
@@ -247,10 +246,42 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
       return;
     }
 
+    if (!coreAddress || coreAddress === '0x0000000000000000000000000000000000000000') {
+      showNotification("Brokex contracts are only deployed on Base Sepolia Testnet. Please switch to Testnet.", "error");
+      if (setNetwork) setNetwork('testnet');
+      return;
+    }
+
     const cleanCollat = String(collateralAmount || '0').replace(/[^0-9.]/g, '');
     const collatNum = parseFloat(cleanCollat) || 0;
     if (collatNum <= 0) {
       showNotification("Please enter a valid collateral amount.", "error");
+      return;
+    }
+
+    if (minTradeSizeUSD && collatNum < minTradeSizeUSD) {
+      showNotification(`Minimum trade collateral is $${minTradeSizeUSD} USDC.`, "error");
+      return;
+    }
+
+    // 1. Vérification Solde USDC
+    if (rawUsdcBalance === undefined || BigInt(rawUsdcBalance) < currentCollatUnits) {
+      showNotification(`Insufficient USDC balance in wallet (${usdcBalance} USDC available, ${collatNum.toFixed(2)} USDC required).`, "error");
+      return;
+    }
+
+    // 2. Vérification Allowance USDC
+    if (rawAllowance === undefined || BigInt(rawAllowance) < currentCollatUnits) {
+      showNotification("USDC allowance insufficient. Please approve USDC first.", "error");
+      handleApproveUsdc();
+      return;
+    }
+
+    // 3. Vérification Liquidité Disponible
+    const requestedOI = collatNum * leverage;
+    const availableLiqUSD = side === 'buy' ? (availLiqLongRaw || 0) : (availLiqShortRaw || 0);
+    if (availableLiqUSD > 0 && requestedOI > availableLiqUSD) {
+      showNotification(`Insufficient pool liquidity for ${side === 'buy' ? 'Long' : 'Short'} (Requested: $${requestedOI.toFixed(2)}, Available: $${availableLiqUSD.toFixed(2)}).`, "error");
       return;
     }
 

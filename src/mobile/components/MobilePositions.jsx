@@ -4,23 +4,30 @@ import { api } from '../../services/api';
 import { useMarketData } from '../../context/MarketDataContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { brokexCoreAbi } from '../../abi/brokexCoreAbi';
+import { getContractAddresses } from '../../utils/contracts';
+import { calculateEstimatedSpreadLocal, calculatePositionPnLWithSpread } from '../../utils/spreadCalculator';
 
 const goldAccent = '#BC8961';
 const sellColor = '#ef4444'; // red
 
-export default function MobilePositions({ onManagePosition, isFullPage = false }) {
+export default function MobilePositions({ isFullPage = false }) {
   const { address, isConnected } = useAccount();
-  const { network, isMainnet, goldPrice } = useMarketData();
+  const { network, isMainnet, goldPrice, protocolInfo } = useMarketData();
   const { showNotification } = useNotifications();
   const { writeContractAsync } = useWriteContract();
 
-  const [activeTab, setActiveTab] = useState('open');
+  const [activeTab, setActiveTab] = useState('open'); // 'open', 'orders', 'history'
   const [traderTrades, setTraderTrades] = useState([]);
   const [actionLoadingId, setActionLoadingId] = useState(null);
 
-  const coreAddress = isMainnet
-    ? (import.meta.env.VITE_BROKEX_CORE_MAINNET || '0x0000000000000000000000000000000000000000')
-    : (import.meta.env.VITE_BROKEX_CORE_TESTNET || '0x171386dEaBFdd281c29345F12996bA35f1Aed0d2');
+  // Position Manager Modal State
+  const [isPosManagerOpen, setIsPosManagerOpen] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState(null);
+  const [posManagerTab, setPosManagerTab] = useState('close'); // 'close', 'tp-sl'
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Brokex Core Contract Address centralisée depuis le .env
+  const { core: coreAddress, paymasterUrl } = getContractAddresses(isMainnet);
 
   // Polling des trades du trader connecté
   useEffect(() => {
@@ -398,18 +405,9 @@ export default function MobilePositions({ onManagePosition, isFullPage = false }
                 
                 {activeTab === 'open' && (
                   <>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--text-grey)' }}>Market Price:</span>
-                        <span style={{ fontWeight: '500', fontFamily: 'Source Code Pro' }}>{item.marketPrice}</span>
-                      </div>
-                      {item.spreadBpsStr && (
-                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                          <span style={{ fontSize: '9px', color: 'var(--text-grey)', opacity: 0.85 }}>
-                            Spr: {item.spreadBpsStr}
-                          </span>
-                        </div>
-                      )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-grey)' }}>Market Price:</span>
+                      <span style={{ fontWeight: '500', fontFamily: 'Source Code Pro' }}>{item.marketPrice}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ color: 'var(--text-grey)' }}>Liq. Price:</span>
