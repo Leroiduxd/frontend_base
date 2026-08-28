@@ -11,7 +11,7 @@ import { getContractAddresses } from '../../utils/contracts';
 export default function MobilePortfolio() {
   const { address, isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const { network } = useMarketData();
+  const { network, isMainnet } = useMarketData();
   const { showNotification } = useNotifications();
   const userBasename = useEnsOrBasename(address);
 

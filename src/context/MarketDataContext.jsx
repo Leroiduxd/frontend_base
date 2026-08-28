@@ -19,6 +19,8 @@ export function MarketDataProvider({ children }) {
     ? (chainId === base.id ? 'mainnet' : 'testnet')
     : selectedNetwork;
 
+  const isMainnet = currentNetwork === 'mainnet';
+
   const setNetwork = (network) => {
     setSelectedNetwork(network);
     if (isConnected && switchChain) {

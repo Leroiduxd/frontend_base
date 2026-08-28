@@ -13,7 +13,7 @@ export default function ReferralModal({ isOpen, onClose }) {
   const { address, isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { writeContractAsync } = useWriteContract();
-  const { network } = useMarketData();
+  const { network, isMainnet } = useMarketData();
   const { showNotification } = useNotifications();
   const userBasename = useEnsOrBasename(address);
 
