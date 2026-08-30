@@ -260,7 +260,7 @@ export default function MobileTrade() {
                 flexDirection: 'column', 
                 backgroundColor: 'var(--bg-dark)',
                 padding: '8px',
-                paddingBottom: '24px',
+                paddingBottom: '84px',
                 gap: '2px',
                 position: 'relative'
               }}
