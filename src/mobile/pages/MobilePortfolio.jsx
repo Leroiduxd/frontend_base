@@ -130,7 +130,6 @@ export default function MobilePortfolio() {
     handleCopy();
   };
 
-  const { writeContractAsync } = useWriteContract();
   const [isClaiming, setIsClaiming] = useState(false);
 
   const handleClaimRewards = async () => {

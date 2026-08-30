@@ -102,9 +102,6 @@ export default function OrderPanel() {
     }
   });
 
-  const { writeContractAsync } = useWriteContract();
-  const publicClient = usePublicClient();
-
   const usdcBalanceNum = isConnected && rawUsdcBalance !== undefined
     ? Number(rawUsdcBalance) / 1e6
     : 0;
