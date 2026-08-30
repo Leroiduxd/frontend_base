@@ -109,7 +109,7 @@ export function MarketDataProvider({ children }) {
   // 2. 24h Variation / High / Low (récupérés de market24h)
   const priceChangePercent24h = protocolInfo?.market24h?.price_change_percent_24h ?? 0;
   const changeFormatted = `${priceChangePercent24h >= 0 ? '+' : ''}${priceChangePercent24h.toFixed(2)}%`;
-  
+
   const high24h = protocolInfo?.market24h?.high_24h;
   const high24hFormatted = high24h != null
     ? `$${high24h.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -136,7 +136,7 @@ export function MarketDataProvider({ children }) {
 
   const longSpreadFormatted = `${longSpreadPercent.toFixed(2)}% ($${longSpreadUSD.toFixed(2)})`;
   const shortSpreadFormatted = `${shortSpreadPercent.toFixed(2)}% ($${shortSpreadUSD.toFixed(2)})`;
-  
+
   const avgSpreadBps = (longSpreadBps + shortSpreadBps) / 2;
   const spreadPercent = avgSpreadBps / 100;
   const spreadUSD = currentPrice ? (currentPrice * (spreadPercent / 100)) : 0;
@@ -201,9 +201,9 @@ export function MarketDataProvider({ children }) {
 
   // 9. État d'ouverture du marché (Market Open / Closed) calculé via le schedule horaire (Pyth schedule)
   const scheduleString = pythMetadata?.schedule || primaryAsset?.schedule || protocolInfo?.schedule;
-  
-  const isMarketOpenBySchedule = scheduleString 
-    ? isMarketOpenFromSchedule(scheduleString) 
+
+  const isMarketOpenBySchedule = scheduleString
+    ? isMarketOpenFromSchedule(scheduleString)
     : undefined;
 
   const nextOpenTime = scheduleString

@@ -151,7 +151,7 @@ export default function Positions() {
 
       const exitSpreadPercent = exitSpreadRes.tradeSpreadPercent; // ex: 0.0384%
       const spreadDecimal = exitSpreadPercent / 100;
-      
+
       // Prix d'exécution effectif au marché (Bid pour Long, Ask pour Short)
       const estimatedExitPrice = isLong
         ? currentMark * (1 - spreadDecimal)
@@ -252,8 +252,31 @@ export default function Positions() {
       .sort((a, b) => Number(b.tradeId) - Number(a.tradeId));
   }, [formattedTrades]);
 
+  const [isExpanded, setIsExpanded] = useState(Boolean(isConnected));
+  const [hoveredButton, setHoveredButton] = useState(null); // 'orderbook' | 'positions' | null
+
+  useEffect(() => {
+    setIsExpanded(Boolean(isConnected));
+  }, [isConnected]);
+
+  const handleTabClick = (key) => {
+    setActiveTab(key);
+    document.documentElement.style.setProperty('--positions-height', '240px');
+    setIsExpanded(true);
+  };
+
+  const handleToggleExpand = () => {
+    if (isExpanded) {
+      document.documentElement.style.setProperty('--positions-height', '40px');
+      setIsExpanded(false);
+    } else {
+      document.documentElement.style.setProperty('--positions-height', '240px');
+      setIsExpanded(true);
+    }
+  };
+
   return (
-    <div className="positions panel" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="positions panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', overflow: 'visible', zIndex: 100 }}>
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -261,7 +284,8 @@ export default function Positions() {
         padding: '0 10px',
         height: '40px',
         flexShrink: 0,
-        borderBottom: '1px solid var(--border-color)'
+        borderBottom: '1px solid var(--border-color)',
+        position: 'relative'
       }}>
         {/* Left Tabs */}
         <div style={{ display: 'flex', gap: '5px' }}>
@@ -274,7 +298,7 @@ export default function Positions() {
             return (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => handleTabClick(tab.key)}
                 style={{
                   background: 'transparent',
                   border: isTabActive ? '1px solid #BC8961' : '1px solid transparent',
@@ -294,10 +318,198 @@ export default function Positions() {
           })}
         </div>
 
-        {/* Right Section: Order Book Toggle (Icon Only) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Right Section: Order Book Toggle + Expand/Collapse */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
+          
+          {/* SCHEMATIC WIREFRAME HOVER POPUP */}
+          {hoveredButton && (
+            <div style={{
+              position: 'absolute',
+              bottom: 'calc(100% + 10px)',
+              right: '0',
+              width: '200px',
+              backgroundColor: '#0c0d11',
+              border: '1px solid rgba(188, 137, 97, 0.45)',
+              borderRadius: '10px',
+              padding: '10px 12px',
+              boxShadow: '0 14px 40px rgba(0, 0, 0, 0.95), 0 0 25px rgba(188, 137, 97, 0.2)',
+              zIndex: 999999,
+              pointerEvents: 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              animation: 'tooltipFadeIn 0.15s ease-out'
+            }}>
+              <style>{`
+                @keyframes tooltipFadeIn {
+                  from { opacity: 0; transform: translateY(4px); }
+                  to { opacity: 1; transform: translateY(0); }
+                }
+              `}</style>
+
+              {/* Triangle pointer */}
+              <div style={{
+                position: 'absolute',
+                bottom: '-6px',
+                right: hoveredButton === 'orderbook' ? '42px' : '10px',
+                width: '10px',
+                height: '10px',
+                backgroundColor: '#0c0d11',
+                borderRight: '1px solid rgba(188, 137, 97, 0.45)',
+                borderBottom: '1px solid rgba(188, 137, 97, 0.45)',
+                transform: 'rotate(45deg)'
+              }} />
+
+              {/* Title & Status Badge */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '10px', fontWeight: '800', color: '#f1f5f9', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  {hoveredButton === 'orderbook' ? 'Order Book' : 'Positions'}
+                </span>
+                <span style={{
+                  fontSize: '8.5px',
+                  fontWeight: '700',
+                  padding: '1px 6px',
+                  borderRadius: '4px',
+                  fontFamily: 'Source Code Pro, monospace',
+                  background: (hoveredButton === 'orderbook' ? showOrderBook : isExpanded) ? 'rgba(188, 137, 97, 0.18)' : 'rgba(255, 255, 255, 0.05)',
+                  color: (hoveredButton === 'orderbook' ? showOrderBook : isExpanded) ? '#BC8961' : '#888d96',
+                  border: (hoveredButton === 'orderbook' ? showOrderBook : isExpanded) ? '1px solid rgba(188, 137, 97, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
+                  {hoveredButton === 'orderbook'
+                    ? (showOrderBook ? 'SHOWN' : 'HIDDEN')
+                    : (isExpanded ? 'EXPANDED' : 'COLLAPSED')}
+                </span>
+              </div>
+
+              {/* Mini App Wireframe Schema */}
+              <div style={{
+                width: '100%',
+                height: '92px',
+                backgroundColor: '#060709',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '6px',
+                padding: '4px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '3px',
+                boxSizing: 'border-box'
+              }}>
+                {/* TopNav Wireframe */}
+                <div style={{
+                  height: '10px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                  borderRadius: '3px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '0 4px',
+                  gap: '3px'
+                }}>
+                  <div style={{ width: '12px', height: '4px', background: '#BC8961', borderRadius: '1px' }} />
+                  <div style={{ width: '20px', height: '3px', background: 'rgba(255,255,255,0.15)', borderRadius: '1px' }} />
+                </div>
+
+                {/* Middle Section: Chart + OrderBook + OrderPanel */}
+                <div style={{ flex: 1, display: 'flex', gap: '3px', minHeight: 0 }}>
+                  {/* Chart */}
+                  <div style={{
+                    flex: 1,
+                    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                    borderRadius: '3px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '2px'
+                  }}>
+                    <svg width="100%" height="100%" viewBox="0 0 50 20" fill="none" style={{ opacity: 0.35 }}>
+                      <path d="M2 15 L12 8 L22 13 L32 5 L42 10 L48 3" stroke="#BC8961" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  </div>
+
+                  {/* OrderBook Wireframe */}
+                  <div style={{
+                    width: '32px',
+                    backgroundColor: hoveredButton === 'orderbook'
+                      ? (showOrderBook ? 'rgba(188, 137, 97, 0.25)' : 'rgba(188, 137, 97, 0.08)')
+                      : (showOrderBook ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.01)'),
+                    border: hoveredButton === 'orderbook'
+                      ? '1.5px solid #BC8961'
+                      : (showOrderBook ? '1px solid rgba(255, 255, 255, 0.1)' : '1px dashed rgba(255, 255, 255, 0.08)'),
+                    borderRadius: '3px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-around',
+                    padding: '2px',
+                    boxShadow: hoveredButton === 'orderbook' ? '0 0 8px rgba(188, 137, 97, 0.3)' : 'none',
+                    transition: 'all 0.2s'
+                  }}>
+                    <div style={{ width: '85%', height: '2px', background: '#BC8961', opacity: showOrderBook ? 0.85 : 0.25, borderRadius: '1px' }} />
+                    <div style={{ width: '60%', height: '2px', background: '#BC8961', opacity: showOrderBook ? 0.65 : 0.2, borderRadius: '1px' }} />
+                    <div style={{ width: '75%', height: '2px', background: '#BC8961', opacity: showOrderBook ? 0.75 : 0.2, borderRadius: '1px' }} />
+                    <div style={{ width: '90%', height: '2px', background: '#BC8961', opacity: showOrderBook ? 0.9 : 0.25, borderRadius: '1px' }} />
+                  </div>
+
+                  {/* OrderPanel Wireframe */}
+                  <div style={{
+                    width: '34px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                    borderRadius: '3px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '2px',
+                    gap: '2px'
+                  }}>
+                    <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.08)', borderRadius: '1px' }} />
+                    <div style={{ width: '100%', height: '6px', background: '#BC8961', opacity: 0.35, borderRadius: '1px', marginTop: 'auto' }} />
+                  </div>
+                </div>
+
+                {/* Bottom Section: Positions Drawer Wireframe */}
+                <div style={{
+                  height: hoveredButton === 'positions'
+                    ? (isExpanded ? '24px' : '9px')
+                    : (isExpanded ? '20px' : '7px'),
+                  backgroundColor: hoveredButton === 'positions'
+                    ? (isExpanded ? 'rgba(188, 137, 97, 0.25)' : 'rgba(188, 137, 97, 0.08)')
+                    : (isExpanded ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.02)'),
+                  border: hoveredButton === 'positions'
+                    ? '1.5px solid #BC8961'
+                    : (isExpanded ? '1px solid rgba(255, 255, 255, 0.1)' : '1px dashed rgba(255, 255, 255, 0.08)'),
+                  borderRadius: '3px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  padding: '2px 4px',
+                  gap: '2px',
+                  boxShadow: hoveredButton === 'positions' ? '0 0 8px rgba(188, 137, 97, 0.3)' : 'none',
+                  transition: 'all 0.2s'
+                }}>
+                  <div style={{ display: 'flex', gap: '3px' }}>
+                    <div style={{ width: '15px', height: '2px', background: '#BC8961', opacity: isExpanded ? 0.9 : 0.3 }} />
+                    <div style={{ width: '15px', height: '2px', background: 'rgba(255,255,255,0.2)' }} />
+                  </div>
+                  {isExpanded && (
+                    <div style={{ width: '100%', height: '2px', background: 'rgba(255,255,255,0.06)' }} />
+                  )}
+                </div>
+              </div>
+
+              {/* Action Hint */}
+              <div style={{ fontSize: '9.5px', color: '#94a3b8', textAlign: 'center', fontWeight: '500' }}>
+                {hoveredButton === 'orderbook'
+                  ? (showOrderBook ? 'Click to hide Order Book column' : 'Click to show Order Book column')
+                  : (isExpanded ? 'Click to minimize Positions drawer' : 'Click to expand Positions drawer')}
+              </div>
+            </div>
+          )}
+
+          {/* Button 1: Order Book Toggle */}
           <button
             onClick={() => setShowOrderBook(!showOrderBook)}
+            onMouseEnter={() => setHoveredButton('orderbook')}
+            onMouseLeave={() => setHoveredButton(null)}
             style={{
               background: showOrderBook ? 'rgba(188, 137, 97, 0.12)' : 'rgba(255, 255, 255, 0.03)',
               border: showOrderBook ? '1px solid #BC8961' : '1px solid var(--border-color)',
@@ -325,7 +537,44 @@ export default function Positions() {
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.65 }}>
                 <rect width="18" height="18" x="3" y="3" rx="2" />
                 <path d="M15 3v18" strokeDasharray="3 3" />
-                <path d="m10 10 2 2-2 2" />
+                <path d="m10 10 2-2 2 2" />
+              </svg>
+            )}
+          </button>
+
+          {/* Button 2: Toggle Expand / Fold */}
+          <button
+            onClick={handleToggleExpand}
+            onMouseEnter={() => setHoveredButton('positions')}
+            onMouseLeave={() => setHoveredButton(null)}
+            style={{
+              background: isExpanded ? 'rgba(188, 137, 97, 0.12)' : 'rgba(255, 255, 255, 0.03)',
+              border: isExpanded ? '1px solid #BC8961' : '1px solid var(--border-color)',
+              color: isExpanded ? '#BC8961' : 'var(--text-grey)',
+              width: '28px',
+              height: '28px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s',
+              padding: 0
+            }}
+            title={isExpanded ? "Collapse Positions Panel" : "Expand Positions Panel"}
+            aria-label={isExpanded ? "Collapse Positions Panel" : "Expand Positions Panel"}
+          >
+            {isExpanded ? (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="18" height="18" x="3" y="3" rx="2" />
+                <path d="M3 15h18" />
+                <path d="m10 18 2 2 2-2" />
+              </svg>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.65 }}>
+                <rect width="18" height="18" x="3" y="3" rx="2" />
+                <path d="M3 15h18" strokeDasharray="3 3" />
+                <path d="m10 10 2-2 2 2" />
               </svg>
             )}
           </button>

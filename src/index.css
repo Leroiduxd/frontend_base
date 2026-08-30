@@ -47,7 +47,7 @@ body.light-mode .panel {
 }
 
 body.light-mode {
-  background-image: 
+  background-image:
     radial-gradient(circle at 0% 0%, rgba(176, 141, 87, 0.03) 0%, transparent 50%),
     radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.03) 0%, transparent 50%);
   background-color: #ffffff;
@@ -67,16 +67,16 @@ body.light-mode {
   outline-offset: 1px;
 }
 
-input:focus, 
-select:focus, 
-textarea:focus, 
+input:focus,
+select:focus,
+textarea:focus,
 button:focus {
   outline: none !important;
 }
 
-input:focus-visible, 
-select:focus-visible, 
-textarea:focus-visible, 
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
 button:focus-visible {
   outline: none !important;
   box-shadow: 0 0 0 2px rgba(200, 169, 126, 0.35) !important;
@@ -238,6 +238,9 @@ body {
 
 .positions {
   grid-area: positions;
+  position: relative;
+  z-index: 200;
+  overflow: visible !important;
 }
 
 .order {
@@ -439,6 +442,7 @@ body {
     width: 36px;
     height: 36px;
   }
+
   .chart-action-btn svg {
     width: 16px;
     height: 16px;

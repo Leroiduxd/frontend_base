@@ -46,13 +46,13 @@ const erc20Abi = [
 ];
 
 export default function OrderPanel() {
-  const { 
-    goldPrice, 
-    goldPriceFormatted, 
-    isMainnet, 
+  const {
+    goldPrice,
+    goldPriceFormatted,
+    isMainnet,
     network,
-    setNetwork, 
-    minLeverage, 
+    setNetwork,
+    minLeverage,
     maxLeverage,
     minTradeSizeUSD,
     commissionRatePercent,
@@ -151,7 +151,7 @@ export default function OrderPanel() {
 
   const minLeverageNum = minLeverage || 5;
   const maxLeverageNum = maxLeverage || 50;
-  
+
   // 4 leverage stops: 5x, 10x, 15x, 20x
   const leverageStops = [5, 10, 15, 20].filter(l => l >= minLeverageNum && l <= maxLeverageNum);
 
@@ -162,7 +162,7 @@ export default function OrderPanel() {
 
   const collatNum = Number(collateralAmount || 0);
   const rawExposureUSD = collatNum * leverage;
-  
+
   // Calcul instantané du spread via la formule exacte Solidity locale (0 RPC)
   const {
     tradeSpreadPercent,
@@ -483,17 +483,17 @@ export default function OrderPanel() {
                   setOrderType(type);
                 }}
                 style={{
-                  flex: 1, 
-                  textAlign: 'center', 
-                  padding: '6px', 
-                  cursor: isMarketDisabled ? 'not-allowed' : 'pointer', 
+                  flex: 1,
+                  textAlign: 'center',
+                  padding: '6px',
+                  cursor: isMarketDisabled ? 'not-allowed' : 'pointer',
                   borderRadius: '4px',
                   backgroundColor: orderType === type ? goldAccentLight : 'transparent',
                   color: isMarketDisabled ? 'rgba(255,255,255,0.2)' : orderType === type ? goldAccent : themeTextMuted,
                   border: `1px solid ${orderType === type ? goldAccent : 'transparent'}`,
-                  fontSize: '11px', 
-                  fontWeight: orderType === type ? 600 : 400, 
-                  textTransform: 'capitalize', 
+                  fontSize: '11px',
+                  fontWeight: orderType === type ? 600 : 400,
+                  textTransform: 'capitalize',
                   transition: 'all 0.15s',
                   opacity: isMarketDisabled ? 0.4 : 1,
                   display: 'flex',
@@ -856,7 +856,7 @@ export default function OrderPanel() {
               style={{
                 flex: 1,
                 backgroundColor: goldAccent,
-                color: '#000',
+                color: '#ffffff',
                 border: 'none',
                 borderRadius: '6px',
                 padding: '10px',
@@ -882,7 +882,7 @@ export default function OrderPanel() {
               style={{
                 flex: 1,
                 backgroundColor: goldAccent,
-                color: '#000',
+                color: '#ffffff',
                 border: 'none',
                 borderRadius: '6px',
                 padding: '10px',
@@ -1096,8 +1096,8 @@ export default function OrderPanel() {
               title="Base Logo"
             >
               <svg width="14" height="14" viewBox="0 0 111 111" fill="none">
-                <circle cx="55.5" cy="55.5" r="55.5" fill={goldAccent}/>
-                <path d="M55.5 87C72.9001 87 87 72.9001 87 55.5C87 38.0999 72.9001 24 55.5 24C38.6472 24 24.8778 37.2187 24.0454 53.8447H66.8625V57.1553H24.0454C24.8778 73.7813 38.6472 87 55.5 87Z" fill="#121212"/>
+                <circle cx="55.5" cy="55.5" r="55.5" fill={goldAccent} />
+                <path d="M55.5 87C72.9001 87 87 72.9001 87 55.5C87 38.0999 72.9001 24 55.5 24C38.6472 24 24.8778 37.2187 24.0454 53.8447H66.8625V57.1553H24.0454C24.8778 73.7813 38.6472 87 55.5 87Z" fill="#121212" />
               </svg>
             </div>
           </a>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useAccount } from 'wagmi'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import Chart from '../components/Chart'
@@ -12,7 +13,20 @@ import { useMarketData } from '../context/MarketDataContext'
 export default function Trade() {
   const [isMarketSelectorOpen, setIsMarketSelectorOpen] = useState(false)
   const { showOrderBook } = useMarketData()
+  const { isConnected } = useAccount()
   const isDragging = useRef(false)
+
+  // Minimiser / plier les positions à 40px quand non connecté
+  useEffect(() => {
+    if (!isConnected) {
+      document.documentElement.style.setProperty('--positions-height', '40px')
+    } else {
+      const currentH = document.documentElement.style.getPropertyValue('--positions-height')
+      if (!currentH || currentH === '40px') {
+        document.documentElement.style.setProperty('--positions-height', '240px')
+      }
+    }
+  }, [isConnected])
 
   useEffect(() => {
     const handleMouseMove = (e) => {
