@@ -87,7 +87,7 @@ export function getSavedReferrer(currentAccount) {
  * @param {string} [network]
  * @returns {Promise<`0x${string}`>}
  */
-export async function getEffectiveReferrerToSubmit(currentAccount, network = 'testnet') {
+export async function getEffectiveReferrerToSubmit(currentAccount, network = 'mainnet') {
   const normalizedAccount = normalizeAddress(currentAccount);
   if (!normalizedAccount) {
     return '0x0000000000000000000000000000000000000000';

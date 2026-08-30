@@ -24,7 +24,7 @@ export const CONTRACT_ADDRESSES = {
  * Returns contract addresses for current network
  * @param {string|boolean} networkOrIsMainnet - 'mainnet' | 'testnet' or boolean isMainnet
  */
-export function getContractAddresses(networkOrIsMainnet = 'testnet') {
+export function getContractAddresses(networkOrIsMainnet = 'mainnet') {
   const isMainnet = networkOrIsMainnet === 'mainnet' || networkOrIsMainnet === true;
   return isMainnet ? CONTRACT_ADDRESSES.mainnet : CONTRACT_ADDRESSES.testnet;
 }

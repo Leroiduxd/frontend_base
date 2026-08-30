@@ -13,7 +13,7 @@ export function MarketDataProvider({ children }) {
   const { switchChain } = useSwitchChain();
 
   // Network state: 'testnet' | 'mainnet'
-  const [selectedNetwork, setSelectedNetwork] = useState('testnet');
+  const [selectedNetwork, setSelectedNetwork] = useState('mainnet');
 
   const currentNetwork = isConnected
     ? (chainId === base.id ? 'mainnet' : 'testnet')

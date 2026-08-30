@@ -4,7 +4,7 @@ export const api = {
   baseUrl: API_BASE_URL,
 
   // Oracle Price Endpoint avec network optionnel
-  async getOraclePrice(network = 'testnet') {
+  async getOraclePrice(network = 'mainnet') {
     const res = await fetch(`${API_BASE_URL}/oracle?network=${network}`);
     if (!res.ok) {
       throw new Error(`Oracle API error: ${res.statusText}`);
@@ -13,7 +13,7 @@ export const api = {
   },
 
   // Pyth Price Update Proof Endpoint pour openMarket / closeMarket
-  async getProof(network = 'testnet') {
+  async getProof(network = 'mainnet') {
     const res = await fetch(`${API_BASE_URL}/proof?network=${network}`);
     if (!res.ok) {
       throw new Error(`Pyth proof API error: ${res.statusText}`);
@@ -22,7 +22,7 @@ export const api = {
   },
 
   // Protocol Info Endpoint avec network (testnet ou mainnet)
-  async getProtocolInfo(network = 'testnet') {
+  async getProtocolInfo(network = 'mainnet') {
     const res = await fetch(`${API_BASE_URL}/protocol-info?network=${network}`);
     if (!res.ok) {
       throw new Error(`Protocol info API error: ${res.statusText}`);
@@ -31,7 +31,7 @@ export const api = {
   },
 
   // Markets Endpoint
-  async getMarkets(network = 'testnet') {
+  async getMarkets(network = 'mainnet') {
     const res = await fetch(`${API_BASE_URL}/markets?network=${network}`);
     if (!res.ok) {
       throw new Error(`Markets API error: ${res.statusText}`);
@@ -40,7 +40,7 @@ export const api = {
   },
 
   // Chart History Candles Endpoint (OHLCV)
-  async getChartHistory({ resolution = '15', limit = 200, from, to, network = 'testnet' } = {}) {
+  async getChartHistory({ resolution = '15', limit = 200, from, to, network = 'mainnet' } = {}) {
     const url = new URL(`${API_BASE_URL}/chart/history`);
     url.searchParams.append('resolution', resolution);
     url.searchParams.append('limit', String(limit));
@@ -56,7 +56,7 @@ export const api = {
   },
 
   // Trades Endpoint avec pagination et network
-  async getTrades({ limit = 50, offset = 0, status, network = 'testnet' } = {}) {
+  async getTrades({ limit = 50, offset = 0, status, network = 'mainnet' } = {}) {
     const url = new URL(`${API_BASE_URL}/trades`);
     url.searchParams.append('limit', String(limit));
     url.searchParams.append('offset', String(offset));
@@ -71,7 +71,7 @@ export const api = {
   },
 
   // Trader Positions & History Endpoint
-  async getTraderTrades(address, network = 'testnet') {
+  async getTraderTrades(address, network = 'mainnet') {
     if (!address) return { success: false, trades: [] };
     const res = await fetch(`${API_BASE_URL}/trader/${address}?network=${network}`);
     if (!res.ok) {
@@ -81,7 +81,7 @@ export const api = {
   },
 
   // Referral System Endpoint
-  async getReferrals(address, network = 'testnet') {
+  async getReferrals(address, network = 'mainnet') {
     if (!address) return { success: false, referrer: null };
     const res = await fetch(`${API_BASE_URL}/referrals/${address}?network=${network}`);
     if (!res.ok) {

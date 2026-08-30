@@ -222,8 +222,7 @@ export default function OrderPanel() {
       return;
     }
     if (!coreAddress || coreAddress === '0x0000000000000000000000000000000000000000') {
-      showNotification("Brokex contracts are only deployed on Base Sepolia Testnet. Please switch to Testnet.", "error");
-      if (setNetwork) setNetwork('testnet');
+      showNotification("Brokex contract address is not configured for this network.", "error");
       return;
     }
     setIsSubmitting(true);
@@ -260,8 +259,7 @@ export default function OrderPanel() {
     }
 
     if (!coreAddress || coreAddress === '0x0000000000000000000000000000000000000000') {
-      showNotification("Brokex contracts are only deployed on Base Sepolia Testnet. Please switch to Testnet.", "error");
-      if (setNetwork) setNetwork('testnet');
+      showNotification("Brokex contract address is not configured for this network.", "error");
       return;
     }
 

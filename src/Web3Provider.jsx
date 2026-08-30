@@ -7,10 +7,10 @@ import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 export const config = getDefaultConfig({
   appName: 'Brokex',
   projectId: '0430982e60e771b033c063cf46132717', // WalletConnect Cloud Project ID
-  chains: [baseSepolia, base],
+  chains: [base, baseSepolia],
   transports: {
-    [baseSepolia.id]: http('https://sepolia.base.org'),
     [base.id]: http('https://mainnet.base.org'),
+    [baseSepolia.id]: http('https://sepolia.base.org'),
   },
   ssr: false,
 });
