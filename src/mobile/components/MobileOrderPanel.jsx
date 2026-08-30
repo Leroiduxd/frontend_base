@@ -255,8 +255,9 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
       return;
     }
 
-    if (minTradeSizeUSD && collatNum < minTradeSizeUSD) {
-      showNotification(`Minimum trade collateral is $${minTradeSizeUSD} USDC.`, "error");
+    const minRequiredMargin = minTradeSizeUSD || 10;
+    if (collatNum < minRequiredMargin) {
+      showNotification(`Minimum trade margin is $${minRequiredMargin} USDC.`, "error");
       return;
     }
 

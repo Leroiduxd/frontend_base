@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useAccount, useChainId, useSwitchChain } from 'wagmi';
 import { base, baseSepolia } from 'wagmi/chains';
 import { api } from '../services/api';
@@ -28,11 +28,43 @@ export function MarketDataProvider({ children }) {
     }
   };
 
-  const [oracleData, setOracleData] = useState(null);
-  const [protocolInfo, setProtocolInfo] = useState(null);
-  const [marketsList, setMarketsList] = useState([]);
-  const [goldPrice, setGoldPrice] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [oracleData, setOracleData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('brokex_oracle_data_' + currentNetwork);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [protocolInfo, setProtocolInfo] = useState(() => {
+    try {
+      const saved = localStorage.getItem('brokex_protocol_info_' + currentNetwork);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [marketsList, setMarketsList] = useState(() => {
+    try {
+      const saved = localStorage.getItem('brokex_markets_list_' + currentNetwork);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [goldPrice, setGoldPrice] = useState(() => {
+    try {
+      const saved = localStorage.getItem('brokex_cached_gold_price');
+      return saved ? Number(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Fetch Oracle Price, Protocol Info, and Markets List
@@ -49,17 +81,51 @@ export function MarketDataProvider({ children }) {
 
         if (!isMounted) return;
 
-        if (oracleRes.status === 'fulfilled' && oracleRes.value?.price !== undefined) {
+        // 1. Oracle Price Update (sans écrasement par 0 ou null)
+        if (oracleRes.status === 'fulfilled' && oracleRes.value?.price && Number(oracleRes.value.price) > 0) {
           setOracleData(oracleRes.value);
           setGoldPrice(oracleRes.value.price);
+          try {
+            localStorage.setItem('brokex_cached_gold_price', String(oracleRes.value.price));
+            localStorage.setItem('brokex_oracle_data_' + currentNetwork, JSON.stringify(oracleRes.value));
+          } catch {}
         }
 
-        if (protocolRes.status === 'fulfilled' && protocolRes.value?.data) {
-          setProtocolInfo(protocolRes.value.data);
+        // 2. Protocol Info Update avec Fusion Douce (Évite tout flash à 0)
+        if (protocolRes.status === 'fulfilled' && protocolRes.value) {
+          const incoming = protocolRes.value?.data || protocolRes.value;
+          if (incoming && typeof incoming === 'object' && Object.keys(incoming).length > 0) {
+            setProtocolInfo((prev) => {
+              const prevAssets = prev?.assets || [];
+              const nextAssets = (Array.isArray(incoming.assets) && incoming.assets.length > 0)
+                ? incoming.assets
+                : prevAssets;
+
+              const merged = {
+                ...(prev || {}),
+                ...incoming,
+                assets: nextAssets.length > 0 ? nextAssets : prevAssets,
+                market24h: incoming.market24h || prev?.market24h,
+                volume24h: (incoming.volume24h && incoming.volume24h.totalVolumeRaw !== "0")
+                  ? incoming.volume24h
+                  : (incoming.volume24h || prev?.volume24h),
+              };
+
+              try {
+                localStorage.setItem('brokex_protocol_info_' + currentNetwork, JSON.stringify(merged));
+              } catch {}
+
+              return merged;
+            });
+          }
         }
 
-        if (marketsRes.status === 'fulfilled' && Array.isArray(marketsRes.value?.markets)) {
+        // 3. Markets List Update
+        if (marketsRes.status === 'fulfilled' && Array.isArray(marketsRes.value?.markets) && marketsRes.value.markets.length > 0) {
           setMarketsList(marketsRes.value.markets);
+          try {
+            localStorage.setItem('brokex_markets_list_' + currentNetwork, JSON.stringify(marketsRes.value.markets));
+          } catch {}
         }
 
         setError(null);
@@ -77,8 +143,8 @@ export function MarketDataProvider({ children }) {
     // Appel immédiat au chargement ou au changement de réseau
     fetchAllData();
 
-    // Polling toutes les 1 seconde (1000ms)
-    const interval = setInterval(fetchAllData, 1000);
+    // Polling toutes les 1.5 seconde (1500ms)
+    const interval = setInterval(fetchAllData, 1500);
 
     return () => {
       isMounted = false;
@@ -89,7 +155,13 @@ export function MarketDataProvider({ children }) {
   // --- CALCULS & FORMATAGES ---
 
   // L'actif principal (Gold / XAU/USD) dans le tableau assets ou à la racine
-  const primaryAsset = protocolInfo?.assets?.[0] || protocolInfo;
+  const primaryAsset = useMemo(() => {
+    if (!protocolInfo) return null;
+    if (Array.isArray(protocolInfo.assets) && protocolInfo.assets.length > 0) {
+      return protocolInfo.assets[0];
+    }
+    return protocolInfo;
+  }, [protocolInfo]);
 
   // 1. Prix Or
   const currentPrice = goldPrice || protocolInfo?.market24h?.current_price || 0;
@@ -189,7 +261,20 @@ export function MarketDataProvider({ children }) {
   // 7. Paramètres de trading du protocole
   const minLeverage = primaryAsset?.minLeverage ? Number(primaryAsset.minLeverage) : 5;
   const maxLeverage = primaryAsset?.maxLeverage ? Number(primaryAsset.maxLeverage) : 20;
-  const minTradeSizeUSD = primaryAsset?.minTradeSize ? Number(primaryAsset.minTradeSize) / 1e6 : 10;
+  const parseMinTradeSize = (raw) => {
+    if (raw == null) return 10;
+    const num = Number(raw);
+    if (isNaN(num) || num <= 0) return 10;
+    return num >= 1000 ? num / 1e6 : num;
+  };
+  const rawMinTradeSize = primaryAsset?.minTradeSize != null 
+    ? primaryAsset.minTradeSize 
+    : protocolInfo?.minTradeSize != null 
+      ? protocolInfo.minTradeSize 
+      : protocolInfo?.params?.minTradeSize != null 
+        ? protocolInfo.params.minTradeSize 
+        : "10000000";
+  const minTradeSizeUSD = parseMinTradeSize(rawMinTradeSize);
   const commissionRatePercent = primaryAsset?.commissionRate ? (Number(primaryAsset.commissionRate) / 1000000) * 100 : 0.1;
 
   // 8. Informations du Vault & Métadonnées

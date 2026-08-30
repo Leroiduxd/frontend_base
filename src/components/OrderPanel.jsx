@@ -260,8 +260,9 @@ export default function OrderPanel() {
       return;
     }
 
-    if (minTradeSizeUSD && collatNum < minTradeSizeUSD) {
-      showNotification(`Minimum trade collateral is $${minTradeSizeUSD} USDC.`, "error");
+    const minRequiredMargin = minTradeSizeUSD || 10;
+    if (collatNum < minRequiredMargin) {
+      showNotification(`Minimum trade margin is $${minRequiredMargin} USDC.`, "error");
       return;
     }
 
