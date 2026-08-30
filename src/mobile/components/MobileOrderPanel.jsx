@@ -80,7 +80,13 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
   const publicClient = usePublicClient();
 
   // Adresses centralisées depuis le .env
-  const { core: coreAddress, usdc: usdcAddress } = getContractAddresses(isMainnet);
+  const { core: coreAddress, usdc: usdcAddress, paymasterUrl } = getContractAddresses(isMainnet);
+
+  const capabilities = paymasterUrl && !paymasterUrl.includes('YOUR_CDP_API_KEY') ? {
+    paymasterService: {
+      url: paymasterUrl
+    }
+  } : undefined;
 
   const { data: rawUsdcBalance, refetch: refetchUsdc } = useReadContract({
     address: usdcAddress,
@@ -223,6 +229,7 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
         abi: erc20Abi,
         functionName: 'approve',
         args: [coreAddress, maxUint256],
+        capabilities,
       });
 
       if (publicClient && approveTxHash) {
@@ -327,6 +334,7 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
           abi: brokexCoreAbi,
           functionName: 'openMarket',
           args: [marketOrderStruct, priceUpdateData],
+          capabilities,
         });
 
         showNotification(`Market ${side === 'buy' ? 'Long' : 'Short'} position successfully opened!`, "success", txHash, 7000, "XAU");
@@ -352,6 +360,7 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
           abi: brokexCoreAbi,
           functionName: 'openOrder',
           args: [pendingOrderStruct],
+          capabilities,
         });
 
         showNotification(`${orderType.toUpperCase()} ${side === 'buy' ? 'Long' : 'Short'} order placed successfully!`, "success", txHash, 7000, "XAU");

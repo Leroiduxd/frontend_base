@@ -74,7 +74,13 @@ export default function OrderPanel() {
   const { openConnectModal } = useConnectModal();
 
   // Adresses centralisées depuis le .env
-  const { core: coreAddress, usdc: usdcAddress } = getContractAddresses(isMainnet);
+  const { core: coreAddress, usdc: usdcAddress, paymasterUrl } = getContractAddresses(isMainnet);
+
+  const capabilities = paymasterUrl && !paymasterUrl.includes('YOUR_CDP_API_KEY') ? {
+    paymasterService: {
+      url: paymasterUrl
+    }
+  } : undefined;
 
   // Lecture en temps réel du solde USDC (ERC20 avec 6 décimales)
   const { data: rawUsdcBalance, refetch: refetchUsdc } = useReadContract({
@@ -228,6 +234,7 @@ export default function OrderPanel() {
         abi: erc20Abi,
         functionName: 'approve',
         args: [coreAddress, maxUint256],
+        capabilities,
       });
 
       if (publicClient && approveTxHash) {
@@ -335,6 +342,7 @@ export default function OrderPanel() {
           abi: brokexCoreAbi,
           functionName: 'openMarket',
           args: [marketOrderStruct, priceUpdateData],
+          capabilities,
         });
 
         showNotification(`Market ${side === 'buy' ? 'Long' : 'Short'} position successfully opened!`, "success", txHash, 7000, "XAU");
@@ -361,6 +369,7 @@ export default function OrderPanel() {
           abi: brokexCoreAbi,
           functionName: 'openOrder',
           args: [pendingOrderStruct],
+          capabilities,
         });
 
         showNotification(`${orderType.toUpperCase()} ${side === 'buy' ? 'Long' : 'Short'} order placed successfully!`, "success", txHash, 7000, "XAU");
