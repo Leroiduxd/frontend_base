@@ -215,6 +215,26 @@ export default function Chart() {
     };
   }, [chartInstance, activeTimeframe, isCandleType, network]);
 
+  // Dynamically update candle colors when theme changes
+  useEffect(() => {
+    const handleThemeChange = () => {
+      if (!chartInstance || !seriesRef.current) return;
+      const upColor = getComputedStyle(document.documentElement).getPropertyValue('--color-blue').trim() || '#3b82f6';
+      const downColor = getComputedStyle(document.documentElement).getPropertyValue('--color-red').trim() || '#ef4444';
+      if (isCandleType) {
+        seriesRef.current.applyOptions({
+          upColor,
+          downColor,
+          wickUpColor: upColor,
+          wickDownColor: downColor,
+        });
+      }
+    };
+
+    window.addEventListener('theme-changed', handleThemeChange);
+    return () => window.removeEventListener('theme-changed', handleThemeChange);
+  }, [chartInstance, isCandleType]);
+
   // 3. Infinite Scroll Backwards: Detect Scroll to Left and Load Older Candles
   useEffect(() => {
     if (!chartInstance) return;

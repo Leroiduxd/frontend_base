@@ -21,36 +21,27 @@
 
   /* Grid settings */
   --positions-height: 280px;
+  --bg-gradient: radial-gradient(circle at 0% 0%, rgba(200, 169, 126, 0.025) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.02) 0%, transparent 50%), radial-gradient(circle at center, #050505 0%, #000000 100%);
 }
 
 body.light-mode {
-  --bg-dark: #ffffff;
-  --bg-subtle: #f8f9fa;
-  --gold: #b08d57;
-  --gold-glow: rgba(176, 141, 87, 0.1);
-  --text-dark: #1a1a1a;
-  --text-grey: #666666;
-  --border-color: #e2e8f0;
-  --panel-bg: rgba(255, 255, 255, 0.9);
-  --panel-border: rgba(0, 0, 0, 0.08);
-
-  --color-blue: #3b82f6;
-  --color-blue-glow: rgba(59, 130, 246, 0.15);
-  --color-blue-bg: rgba(59, 130, 246, 0.1);
-  --color-red: #ef4444;
-  --color-red-glow: rgba(239, 68, 68, 0.15);
-  --color-red-bg: rgba(239, 68, 68, 0.1);
+  --bg-dark: #ffffff !important;
+  --bg-subtle: #f8f9fa !important;
+  --text-dark: #0f172a !important;
+  --text-grey: #64748b !important;
+  --border-color: #e2e8f0 !important;
+  --panel-bg: rgba(255, 255, 255, 0.95) !important;
+  --panel-border: rgba(0, 0, 0, 0.08) !important;
+  --bg-gradient: radial-gradient(circle at 0% 0%, rgba(176, 141, 87, 0.04) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.04) 0%, transparent 50%) !important;
+  background-color: #ffffff !important;
+  background-image: var(--bg-gradient) !important;
+  color: #0f172a !important;
 }
 
 body.light-mode .panel {
-  box-shadow: none !important;
-}
-
-body.light-mode {
-  background-image:
-    radial-gradient(circle at 0% 0%, rgba(176, 141, 87, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.03) 0%, transparent 50%);
-  background-color: #ffffff;
+  background: var(--panel-bg) !important;
+  border-color: var(--panel-border) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
 }
 
 * {
@@ -96,11 +87,8 @@ textarea {
 }
 
 body {
-  background-color: #000000;
-  background-image:
-    radial-gradient(circle at 0% 0%, rgba(200, 169, 126, 0.025) 0%, transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.02) 0%, transparent 50%),
-    radial-gradient(circle at center, #050505 0%, #000000 100%);
+  background-color: var(--bg-dark);
+  background-image: var(--bg-gradient);
   color: var(--text-dark);
   font-family: 'Inter', sans-serif;
   height: 100vh;
@@ -155,6 +143,8 @@ body {
   grid-area: sidebar;
   background: transparent !important;
   border: none !important;
+  position: relative;
+  z-index: 500;
 }
 
 .sidebar-tooltip {

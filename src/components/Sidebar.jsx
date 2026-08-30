@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import ReferralModal from './ReferralModal';
+import BrokexLogo from './BrokexLogo';
 
 export default function Sidebar() {
   const location = useLocation();
@@ -89,7 +90,7 @@ export default function Sidebar() {
       `}</style>
 
       <div className="logo-container">
-        <img src="/logo.svg" alt="Brokex" style={{ width: '22px' }} />
+        <BrokexLogo size={22} color="var(--gold)" />
       </div>
 
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '3px', width: '100%', alignItems: 'center', marginTop: '10px' }}>

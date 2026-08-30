@@ -35,13 +35,13 @@ export default function TopNav({ onOpenMarket }) {
   const isPositiveChange = priceChangePercent24h >= 0;
   // Positive => Blue (var(--color-blue)), Negative => Red (var(--color-red))
   const changeColor = isPositiveChange ? 'var(--color-blue)' : 'var(--color-red)';
-  const goldAccent = '#BC8961';
+  const goldAccent = 'var(--gold)';
 
   return (
     <div className="nav panel" style={{ overflow: 'hidden' }}>
       <div className="nav-stats-container" style={{ display: 'flex', width: '100%', overflow: 'hidden', gap: '0', paddingRight: '0' }}>
         
-        {/* FIXED LEFT SIDE: Ticker Info [XAU] + Live Price + Spread + 24h Change (Blue/Red) */}
+        {/* FIXED LEFT SIDE: Ticker Info [XAU] + Live Price */}
         <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, gap: '15px', padding: '0 15px 0 0' }}>
           
           {/* Ticker Selector */}
@@ -74,22 +74,6 @@ export default function TopNav({ onOpenMarket }) {
               ${goldPriceFormatted}
             </span>
           </div>
-
-          {/* Spread */}
-          <div className="stat-item" style={{ flexShrink: 0 }}>
-            <span className="stat-label">Spread</span>
-            <span className="stat-value" style={{ fontSize: '12px', color: goldAccent, fontFamily: 'Source Code Pro, monospace' }}>
-              {spreadFormatted}
-            </span>
-          </div>
-
-          {/* 24h Change (Live positive/negative) */}
-          <div className="stat-item" style={{ flexShrink: 0 }}>
-            <span className="stat-label">24h Change</span>
-            <span className="stat-value" style={{ fontSize: '12px', color: changeColor, fontWeight: '600', fontFamily: 'Source Code Pro, monospace' }}>
-              {changeFormatted}
-            </span>
-          </div>
         </div>
 
         {/* Separator between Fixed Header and Scrollable Statistics */}
@@ -107,7 +91,8 @@ export default function TopNav({ onOpenMarket }) {
             overflowX: 'auto',
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
-            flex: 1
+            flex: 1,
+            paddingRight: '12px'
           }}
         >
           <style>{`
@@ -118,6 +103,25 @@ export default function TopNav({ onOpenMarket }) {
               flex-shrink: 0;
             }
           `}</style>
+
+          {/* Spread & 24h Change (Glisse avec le reste) */}
+          <div style={{ display: 'flex', gap: '15px' }}>
+            <div className="stat-item">
+              <span className="stat-label">Spread</span>
+              <span className="stat-value" style={{ fontSize: '12px', color: goldAccent, fontFamily: 'Source Code Pro, monospace' }}>
+                {spreadFormatted}
+              </span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">24h Change</span>
+              <span className="stat-value" style={{ fontSize: '12px', color: changeColor, fontWeight: '600', fontFamily: 'Source Code Pro, monospace' }}>
+                {changeFormatted}
+              </span>
+            </div>
+          </div>
+
+          {/* Vertical Separator */}
+          <div style={{ width: '1px', height: '24px', background: 'var(--border-color)' }}></div>
 
           {/* Borrow Rate (Hourly) */}
           <div style={{ display: 'flex', gap: '15px' }}>

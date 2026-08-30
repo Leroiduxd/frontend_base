@@ -4,6 +4,7 @@ import { useAccount } from 'wagmi';
 import { useConnectModal, useAccountModal } from '@rainbow-me/rainbowkit';
 import { useMarketData } from '../../context/MarketDataContext';
 import { api } from '../../services/api';
+import BrokexLogo from '../../components/BrokexLogo';
 
 const cleanSymbol = (rawSymbol) => {
   if (!rawSymbol) return '';
@@ -232,8 +233,8 @@ export default function MobileLayout({ children, disablePadding = false }) {
       {/* Premium Top Navigation Bar */}
       <header className="mobile-header">
         {/* Left: Logo Only */}
-        <Link to="/" className="mobile-logo" style={{ flexShrink: 0 }}>
-          <img src="/logo.svg" alt="Brokex" style={{ width: '22px', height: '22px' }} />
+        <Link to="/" className="mobile-logo" style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+          <BrokexLogo size={22} color="var(--gold)" />
         </Link>
 
         {/* Center: Gliding price ticker marquee */}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { QRCodeSVG } from 'qrcode.react';
@@ -14,7 +15,7 @@ export default function ReferralModal({ isOpen, onClose }) {
   const { address, isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { executeWrite, waitForTx } = useSmartWriteContract();
-  const { network, isMainnet } = useMarketData();
+  const { network } = useMarketData();
   const { showNotification } = useNotifications();
   const userBasename = useEnsOrBasename(address);
 
@@ -128,7 +129,9 @@ export default function ReferralModal({ isOpen, onClose }) {
   const totalEarnedUSD = referralData?.totalEarned ? (Number(referralData.totalEarned) / 1e6).toFixed(2) : '0.00';
   const pendingRewardsNum = referralData?.pendingRewards ? Number(referralData.pendingRewards) / 1e6 : 0;
   const pendingRewardsUSD = pendingRewardsNum.toFixed(2);
-  const claimedRewardsUSD = referralData?.claimedRewards ? (Number(referralData.claimedRewards) / 1e6).toFixed(2) : '0.00';
+  const affiliatesList = referralData?.affiliates || [];
+  const rewardsHistory = referralData?.rewardsHistory || [];
+
   const formatCommissionRatePct = (rawRate) => {
     if (!rawRate) return '20.0';
     const num = Number(rawRate);
@@ -148,10 +151,8 @@ export default function ReferralModal({ isOpen, onClose }) {
   };
 
   const commissionRatePct = formatCommissionRatePct(referralData?.referralRate);
-  const affiliatesList = referralData?.affiliates || [];
-  const rewardsHistory = referralData?.rewardsHistory || [];
 
-  return (
+  const modalContent = (
     <div
       style={{
         position: 'fixed',
@@ -159,413 +160,500 @@ export default function ReferralModal({ isOpen, onClose }) {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
         backdropFilter: 'blur(10px)',
-        zIndex: 999999,
+        zIndex: 9999999,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '20px'
+        padding: '20px',
+        animation: 'refFadeIn 0.15s ease-out'
       }}
       onClick={onClose}
     >
+      <style>{`
+        @keyframes refFadeIn {
+          from { opacity: 0; transform: scale(0.97); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .ref-row:hover {
+          background: var(--bg-subtle);
+        }
+        .ref-scrollable::-webkit-scrollbar {
+          width: 4px;
+        }
+        .ref-scrollable::-webkit-scrollbar-thumb {
+          background: var(--border-color);
+          border-radius: 4px;
+        }
+      `}</style>
+
       <div
         onClick={(e) => e.stopPropagation()}
         className="panel"
         style={{
           width: '100%',
-          maxWidth: '560px',
+          maxWidth: '740px',
           backgroundColor: 'var(--panel-bg)',
-          border: '1px solid var(--panel-border)',
-          borderRadius: '12px',
-          boxShadow: '0 30px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.04)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '14px',
+          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.6), 0 0 30px var(--gold-glow)',
           overflow: 'hidden',
           display: 'flex',
-          flexDirection: 'column',
-          maxHeight: '90vh'
+          flexDirection: 'column'
         }}
       >
-        {/* Modal Header */}
+        {/* ========================================================= */}
+        {/* TOP SECTION (TIERS SUPÉRIEUR AVEC FOND EN POINTILLÉS) */}
+        {/* ========================================================= */}
         <div style={{
+          backgroundColor: 'var(--bg-subtle)',
+          backgroundImage: 'radial-gradient(var(--border-color) 1.2px, transparent 1.2px)',
+          backgroundSize: '10px 10px',
+          borderBottom: '1px solid var(--border-color)',
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '16px 20px',
-          borderBottom: '1px solid var(--panel-border)',
-          background: 'rgba(255, 255, 255, 0.01)'
+          flexDirection: 'column',
+          position: 'relative'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-dark)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-              Referral Program
-            </span>
+          
+          {/* Top Subtle Bar with Badge on Left & Close on Right */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 18px 0 18px'
+          }}>
             <span style={{
-              fontSize: '10px',
+              fontSize: '9.5px',
+              fontWeight: '700',
               color: 'var(--gold)',
-              backgroundColor: 'var(--gold-glow)',
-              border: '1px solid rgba(200, 169, 126, 0.25)',
+              background: 'var(--gold-glow)',
+              border: '1px solid var(--gold)',
               padding: '2px 8px',
               borderRadius: '4px',
-              fontWeight: 'bold',
               fontFamily: 'Source Code Pro, monospace'
             }}>
-              {commissionRatePct}% COMMISSION
+              {commissionRatePct}% LIFETIME REBATE
             </span>
+
+            <button
+              onClick={onClose}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-grey)',
+                cursor: 'pointer',
+                fontSize: '18px',
+                lineHeight: 1,
+                padding: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'color 0.2s'
+              }}
+            >
+              ✕
+            </button>
           </div>
 
-          <button
-            onClick={onClose}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-grey)',
-              fontSize: '18px',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'color 0.15s'
-            }}
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Modal Scrollable Body */}
-        <div style={{ padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Earnings Overview Cards */}
+          {/* MAIN HERO: Grand QR Code on LEFT | 4 Stats (Top) & Invite Link (Bottom) on RIGHT */}
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '10px'
-          }}>
-            <div style={{
-              background: 'var(--bg-subtle)',
-              border: '1px solid var(--panel-border)',
-              borderRadius: '8px',
-              padding: '12px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '4px'
-            }}>
-              <span style={{ fontSize: '10px', color: 'var(--text-grey)', textTransform: 'uppercase', fontWeight: '600' }}>Total Earned</span>
-              <span style={{ fontSize: '16px', fontWeight: 'bold', fontFamily: 'Source Code Pro, monospace', color: '#3b82f6' }}>
-                +${totalEarnedUSD}
-              </span>
-            </div>
-
-            <div style={{
-              background: 'var(--bg-subtle)',
-              border: '1px solid var(--panel-border)',
-              borderRadius: '8px',
-              padding: '12px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '6px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '10px', color: 'var(--text-grey)', textTransform: 'uppercase', fontWeight: '600' }}>Unclaimed</span>
-                <button
-                  onClick={handleClaimRewards}
-                  disabled={isClaiming || pendingRewardsNum <= 0}
-                  style={{
-                    background: pendingRewardsNum > 0 ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)',
-                    color: pendingRewardsNum > 0 ? '#000000' : 'var(--text-grey)',
-                    border: 'none',
-                    borderRadius: '4px',
-                    padding: '2px 8px',
-                    fontSize: '9.5px',
-                    fontWeight: 'bold',
-                    cursor: pendingRewardsNum > 0 && !isClaiming ? 'pointer' : 'not-allowed',
-                    transition: 'all 0.2s',
-                    opacity: isClaiming ? 0.6 : 1
-                  }}
-                >
-                  {isClaiming ? '...' : 'Claim'}
-                </button>
-              </div>
-              <span style={{ fontSize: '16px', fontWeight: 'bold', fontFamily: 'Source Code Pro, monospace', color: 'var(--gold)' }}>
-                ${pendingRewardsUSD}
-              </span>
-            </div>
-
-            <div style={{
-              background: 'var(--bg-subtle)',
-              border: '1px solid var(--panel-border)',
-              borderRadius: '8px',
-              padding: '12px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '4px'
-            }}>
-              <span style={{ fontSize: '10px', color: 'var(--text-grey)', textTransform: 'uppercase', fontWeight: '600' }}>Affiliates</span>
-              <span style={{ fontSize: '16px', fontWeight: 'bold', fontFamily: 'Source Code Pro, monospace', color: 'var(--text-dark)' }}>
-                {affiliatesList.length}
-              </span>
-            </div>
-          </div>
-
-          {/* Referral Link & QR Code Box */}
-          <div style={{
-            background: 'var(--bg-subtle)',
-            border: '1px solid var(--panel-border)',
-            borderRadius: '10px',
-            padding: '16px',
+            padding: '12px 20px 18px 20px',
             display: 'flex',
-            gap: '16px',
+            gap: '18px',
             alignItems: 'center'
           }}>
-            {/* QR Code Container */}
+            
+            {/* LEFT COLUMN: LARGE PROMINENT QR CODE */}
             <div style={{
               background: '#ffffff',
               padding: '8px',
-              borderRadius: '8px',
+              borderRadius: '10px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
-              border: '1px solid var(--panel-border)',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+              border: '1px solid var(--border-color)',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.18)'
             }}>
               {referralLink ? (
                 <QRCodeSVG
                   value={referralLink}
-                  size={92}
-                  level="M"
+                  size={120}
+                  level="H"
                   fgColor="#000000"
                   bgColor="#ffffff"
+                  imageSettings={{
+                    src: '/logo.svg',
+                    x: undefined,
+                    y: undefined,
+                    height: 24,
+                    width: 24,
+                    excavate: true,
+                  }}
                 />
               ) : (
-                <div style={{ width: '92px', height: '92px', background: 'rgba(255,255,255,0.05)' }} />
+                <div style={{ width: '120px', height: '120px', background: 'rgba(0,0,0,0.05)' }} />
               )}
             </div>
 
-            {/* Link & Copy Actions */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 0 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '10.5px', color: 'var(--text-grey)', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                  {isConnected ? 'Your Invite Link' : 'App Link'}
-                </span>
-                <span style={{ fontSize: '10px', color: 'var(--text-grey)' }}>
-                  Scan QR code or copy URL
-                </span>
-              </div>
-
+            {/* RIGHT COLUMN: 4 STATS (TOP) & INVITE LINK (BOTTOM) */}
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              gap: '14px',
+              minWidth: 0
+            }}>
+              
+              {/* 4 Stats Grid with Solid Background for Maximum Legibility */}
               <div style={{
-                display: 'flex',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
                 alignItems: 'center',
-                background: 'var(--bg-dark)',
-                border: '1px solid var(--panel-border)',
-                borderRadius: '6px',
-                padding: '4px 6px 4px 10px',
-                gap: '8px'
+                background: 'var(--panel-bg)',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                border: '1px solid var(--border-color)',
+                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)'
               }}>
-                <span style={{
-                  flex: 1,
-                  fontSize: '11px',
-                  fontFamily: 'Source Code Pro, monospace',
-                  color: 'var(--text-dark)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
+                
+                {/* Metric 1: Unclaimed */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  paddingRight: '8px',
+                  borderRight: '1px solid var(--border-color)',
+                  gap: '2px'
                 }}>
-                  {referralLink}
-                </span>
-                <button
-                  onClick={handleCopy}
-                  style={{
-                    background: copied ? 'var(--text-dark)' : 'var(--gold)',
-                    color: '#000000',
-                    border: 'none',
-                    borderRadius: '4px',
-                    padding: '5px 12px',
-                    fontSize: '11px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                    transition: 'all 0.2s',
-                    boxShadow: copied ? '0 2px 8px rgba(255, 255, 255, 0.2)' : 'none'
-                  }}
-                >
-                  {copied ? 'Copied!' : 'Copy'}
-                </button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '9px', color: 'var(--text-grey)', fontWeight: '700', textTransform: 'uppercase' }}>
+                      Unclaimed
+                    </span>
+                    <button
+                      onClick={handleClaimRewards}
+                      disabled={isClaiming || pendingRewardsNum <= 0}
+                      style={{
+                        backgroundColor: pendingRewardsNum > 0 ? 'var(--gold)' : 'transparent',
+                        color: pendingRewardsNum > 0 ? '#ffffff' : 'var(--text-grey)',
+                        border: pendingRewardsNum > 0 ? 'none' : '1px solid var(--border-color)',
+                        borderRadius: '3px',
+                        padding: '1px 6px',
+                        fontSize: '9px',
+                        fontWeight: '700',
+                        cursor: pendingRewardsNum > 0 && !isClaiming ? 'pointer' : 'not-allowed',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      {isClaiming ? '...' : 'Claim'}
+                    </button>
+                  </div>
+                  <div style={{ fontSize: '15px', fontWeight: 'bold', fontFamily: 'Source Code Pro, monospace', color: 'var(--gold)' }}>
+                    ${pendingRewardsUSD}
+                  </div>
+                </div>
+
+                {/* Metric 2: Total Earned */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  padding: '0 8px',
+                  borderRight: '1px solid var(--border-color)',
+                  gap: '2px'
+                }}>
+                  <span style={{ fontSize: '9px', color: 'var(--text-grey)', fontWeight: '700', textTransform: 'uppercase' }}>
+                    Total Earned
+                  </span>
+                  <div style={{ fontSize: '15px', fontWeight: 'bold', fontFamily: 'Source Code Pro, monospace', color: 'var(--color-blue)' }}>
+                    +${totalEarnedUSD}
+                  </div>
+                </div>
+
+                {/* Metric 3: Referred */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  padding: '0 8px',
+                  borderRight: '1px solid var(--border-color)',
+                  gap: '2px'
+                }}>
+                  <span style={{ fontSize: '9px', color: 'var(--text-grey)', fontWeight: '700', textTransform: 'uppercase' }}>
+                    Referred
+                  </span>
+                  <div style={{ fontSize: '15px', fontWeight: 'bold', fontFamily: 'Source Code Pro, monospace', color: 'var(--text-dark)' }}>
+                    {affiliatesList.length} <span style={{ fontSize: '9.5px', color: 'var(--text-grey)', fontWeight: 'normal' }}>traders</span>
+                  </div>
+                </div>
+
+                {/* Metric 4: Rebate Tier */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  paddingLeft: '8px',
+                  gap: '2px'
+                }}>
+                  <span style={{ fontSize: '9px', color: 'var(--text-grey)', fontWeight: '700', textTransform: 'uppercase' }}>
+                    Rebate Tier
+                  </span>
+                  <div style={{ fontSize: '15px', fontWeight: 'bold', fontFamily: 'Source Code Pro, monospace', color: 'var(--gold)' }}>
+                    {commissionRatePct}% <span style={{ fontSize: '9.5px', color: 'var(--text-grey)', fontWeight: 'normal' }}>share</span>
+                  </div>
+                </div>
+
               </div>
 
-              {!isConnected && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '2px' }}>
-                  <span style={{ fontSize: '9.5px', color: 'var(--text-grey)' }}>
-                    Connect wallet to earn commission on referrals
+              {/* Invite Link Input Bar */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '9.5px', fontWeight: '700', color: 'var(--text-grey)', textTransform: 'uppercase' }}>
+                    Your Referral Link
                   </span>
+                  {!isConnected ? (
+                    <button
+                      onClick={openConnectModal}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--gold)',
+                        fontSize: '9.5px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
+                        padding: 0
+                      }}
+                    >
+                      Connect Wallet
+                    </button>
+                  ) : (
+                    <span style={{ fontSize: '9px', color: 'var(--text-grey)' }}>
+                      Share or scan to earn 20% on every trade
+                    </span>
+                  )}
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  background: 'var(--panel-bg)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '6px',
+                  padding: '3px 4px 3px 10px',
+                  gap: '8px'
+                }}>
+                  <span style={{
+                    flex: 1,
+                    fontSize: '11.5px',
+                    fontFamily: 'Source Code Pro, monospace',
+                    color: 'var(--text-dark)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}>
+                    {referralLink}
+                  </span>
+
                   <button
-                    onClick={openConnectModal}
+                    onClick={handleCopy}
                     style={{
-                      background: 'transparent',
+                      backgroundColor: copied ? 'var(--color-blue)' : 'var(--gold)',
+                      color: '#ffffff',
                       border: 'none',
-                      color: 'var(--gold)',
-                      fontSize: '10px',
-                      fontWeight: 'bold',
+                      borderRadius: '4px',
+                      padding: '6px 14px',
+                      fontSize: '11px',
+                      fontWeight: '700',
                       cursor: 'pointer',
-                      textDecoration: 'underline',
-                      padding: 0
+                      flexShrink: 0,
+                      transition: 'all 0.15s'
                     }}
                   >
-                    Connect Wallet
+                    {copied ? 'Copied' : 'Copy'}
                   </button>
                 </div>
-              )}
+              </div>
+
             </div>
+
           </div>
 
-          {/* Affiliates & Commission History */}
+        </div>
+
+        {/* ========================================================= */}
+        {/* BOTTOM SECTION: FLUSH ACTIVITY TABLE (NO OUTER GAPS) */}
+        {/* ========================================================= */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          backgroundColor: 'transparent'
+        }}>
+          {/* Header Tabs */}
           <div style={{
-            background: 'var(--bg-subtle)',
-            border: '1px solid var(--panel-border)',
-            borderRadius: '10px',
-            overflow: 'hidden',
             display: 'flex',
-            flexDirection: 'column'
+            padding: '0 20px',
+            borderBottom: '1px solid var(--border-color)',
+            background: 'rgba(0, 0, 0, 0.08)',
+            gap: '16px'
           }}>
-            <div style={{
-              display: 'flex',
-              borderBottom: '1px solid var(--panel-border)',
-              background: 'rgba(255, 255, 255, 0.01)',
-              padding: '0 12px'
-            }}>
-              <button
-                onClick={() => setActiveTab('affiliates')}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  borderBottom: `2px solid ${activeTab === 'affiliates' ? 'var(--gold)' : 'transparent'}`,
-                  color: activeTab === 'affiliates' ? 'var(--text-dark)' : 'var(--text-grey)',
-                  padding: '10px 8px',
-                  fontSize: '11px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  textTransform: 'uppercase'
-                }}
-              >
-                Affiliates ({affiliatesList.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('history')}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  borderBottom: `2px solid ${activeTab === 'history' ? 'var(--gold)' : 'transparent'}`,
-                  color: activeTab === 'history' ? 'var(--text-dark)' : 'var(--text-grey)',
-                  padding: '10px 8px',
-                  fontSize: '11px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  textTransform: 'uppercase'
-                }}
-              >
-                Commission History ({rewardsHistory.length})
-              </button>
-            </div>
+            <button
+              onClick={() => setActiveTab('affiliates')}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                borderBottom: `2px solid ${activeTab === 'affiliates' ? 'var(--gold)' : 'transparent'}`,
+                color: activeTab === 'affiliates' ? 'var(--gold)' : 'var(--text-grey)',
+                padding: '11px 2px',
+                fontSize: '11.5px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                transition: 'all 0.15s'
+              }}
+            >
+              Referred Traders ({affiliatesList.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                borderBottom: `2px solid ${activeTab === 'history' ? 'var(--gold)' : 'transparent'}`,
+                color: activeTab === 'history' ? 'var(--gold)' : 'var(--text-grey)',
+                padding: '11px 2px',
+                fontSize: '11.5px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                transition: 'all 0.15s'
+              }}
+            >
+              Commission History ({rewardsHistory.length})
+            </button>
+          </div>
 
-            <div style={{ padding: '8px 12px', minHeight: '120px', maxHeight: '180px', overflowY: 'auto' }}>
-              {!isConnected ? (
-                <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-grey)', fontSize: '11px' }}>
-                  CONNECT WALLET TO VIEW REFERRAL STATS
+          {/* Table Content */}
+          <div style={{ height: '230px', overflowY: 'auto' }} className="ref-scrollable">
+            {!isConnected ? (
+              <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-grey)', fontSize: '11.5px' }}>
+                Connect your wallet to view affiliate activity
+              </div>
+            ) : activeTab === 'affiliates' ? (
+              affiliatesList.length === 0 ? (
+                <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-grey)', fontSize: '11.5px' }}>
+                  No referred traders yet. Share your invite link to start earning lifetime commissions!
                 </div>
-              ) : activeTab === 'affiliates' ? (
-                affiliatesList.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-grey)', fontSize: '11px' }}>
-                    NO AFFILIATES YET — SHARE YOUR LINK OR QR CODE TO EARN!
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {affiliatesList.map((aff, idx) => {
-                      const dateStr = aff.boundAt ? new Date(aff.boundAt * 1000).toLocaleDateString() : 'Recent';
-                      const rate = formatReferralRate(aff.referralRate);
-
-                      return (
-                        <div
-                          key={aff.address || idx}
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            padding: '8px 0',
-                            borderBottom: idx !== affiliatesList.length - 1 ? '1px solid var(--panel-border)' : 'none'
-                          }}
-                        >
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                            <span style={{ fontSize: '11.5px', fontWeight: '600', fontFamily: 'Source Code Pro, monospace', color: 'var(--text-dark)' }}>
-                              <EnsName address={aff.address} />
-                            </span>
-                            <span style={{ fontSize: '9px', color: 'var(--text-grey)' }}>
-                              Joined {dateStr}
-                            </span>
-                          </div>
-                          <span style={{
-                            fontSize: '10px',
-                            color: 'var(--gold)',
-                            fontFamily: 'Source Code Pro, monospace',
-                            fontWeight: 'bold',
-                            background: 'var(--gold-glow)',
-                            border: '1px solid rgba(200, 169, 126, 0.2)',
-                            padding: '2px 6px',
-                            borderRadius: '4px'
-                          }}>
-                            {rate}% Share
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )
               ) : (
-                rewardsHistory.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-grey)', fontSize: '11px' }}>
-                    NO COMMISSIONS RECEIVED YET
+                <div>
+                  {/* Columns */}
+                  <div style={{
+                    display: 'flex',
+                    padding: '7px 20px',
+                    fontSize: '9.5px',
+                    color: 'var(--text-grey)',
+                    borderBottom: '1px solid var(--border-color)',
+                    textTransform: 'uppercase',
+                    fontWeight: '600',
+                    background: 'var(--bg-subtle)'
+                  }}>
+                    <div style={{ flex: 1.8 }}>Trader</div>
+                    <div style={{ flex: 1 }}>Joined</div>
+                    <div style={{ flex: 1, textAlign: 'right' }}>Commission Rate</div>
                   </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {rewardsHistory.map((rew, idx) => {
-                      const amountUSD = rew.amount ? (Number(rew.amount) / 1e6).toFixed(3) : '0.000';
-                      const dateStr = rew.timestamp ? new Date(rew.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                  {/* Rows */}
+                  {affiliatesList.map((aff, idx) => {
+                    const dateStr = aff.boundAt ? new Date(aff.boundAt * 1000).toLocaleDateString() : 'Recent';
+                    const rate = formatReferralRate(aff.referralRate);
 
-                      return (
-                        <div
-                          key={rew.txHash || idx}
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            padding: '8px 0',
-                            borderBottom: idx !== rewardsHistory.length - 1 ? '1px solid var(--panel-border)' : 'none'
-                          }}
-                        >
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                            <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-dark)' }}>
-                              Trade #{rew.tradeId || idx + 1} (<EnsName address={rew.trader} />)
-                            </span>
-                            <span style={{ fontSize: '9px', color: 'var(--text-grey)' }}>
-                              {dateStr}
-                            </span>
-                          </div>
-                          <span style={{
-                            fontSize: '12px',
-                            fontWeight: 'bold',
-                            fontFamily: 'Source Code Pro, monospace',
-                            color: '#3b82f6'
-                          }}>
-                            +${amountUSD} USDC
-                          </span>
+                    return (
+                      <div
+                        key={aff.address || idx}
+                        className="ref-row"
+                        style={{
+                          display: 'flex',
+                          padding: '7px 20px',
+                          fontSize: '11px',
+                          alignItems: 'center',
+                          borderBottom: idx !== affiliatesList.length - 1 ? '1px solid var(--border-color)' : 'none',
+                          height: '34px'
+                        }}
+                      >
+                        <div style={{ flex: 1.8, fontFamily: 'Source Code Pro, monospace', fontSize: '11px', color: 'var(--text-dark)', fontWeight: '600' }}>
+                          <EnsName address={aff.address} />
                         </div>
-                      );
-                    })}
+                        <div style={{ flex: 1, fontSize: '10px', color: 'var(--text-grey)' }}>
+                          {dateStr}
+                        </div>
+                        <div style={{ flex: 1, textAlign: 'right', fontFamily: 'Source Code Pro, monospace', fontSize: '11px', color: 'var(--gold)', fontWeight: 'bold' }}>
+                          {rate}% Share
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )
+            ) : (
+              rewardsHistory.length === 0 ? (
+                <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-grey)', fontSize: '11.5px' }}>
+                  No commission payouts yet. Rewards are credited automatically when your affiliates trade.
+                </div>
+              ) : (
+                <div>
+                  {/* Columns */}
+                  <div style={{
+                    display: 'flex',
+                    padding: '7px 20px',
+                    fontSize: '9.5px',
+                    color: 'var(--text-grey)',
+                    borderBottom: '1px solid var(--border-color)',
+                    textTransform: 'uppercase',
+                    fontWeight: '600',
+                    background: 'var(--bg-subtle)'
+                  }}>
+                    <div style={{ flex: 1 }}>Trade</div>
+                    <div style={{ flex: 1.8 }}>Trader</div>
+                    <div style={{ flex: 1, textAlign: 'right' }}>Payout</div>
                   </div>
-                )
-              )}
-            </div>
+                  {/* Rows */}
+                  {rewardsHistory.map((rew, idx) => {
+                    const amountUSD = rew.amount ? (Number(rew.amount) / 1e6).toFixed(3) : '0.000';
+
+                    return (
+                      <div
+                        key={rew.txHash || idx}
+                        className="ref-row"
+                        style={{
+                          display: 'flex',
+                          padding: '7px 20px',
+                          fontSize: '11px',
+                          alignItems: 'center',
+                          borderBottom: idx !== rewardsHistory.length - 1 ? '1px solid var(--border-color)' : 'none',
+                          height: '34px'
+                        }}
+                      >
+                        <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>
+                          #{rew.tradeId || idx + 1}
+                        </div>
+                        <div style={{ flex: 1.8, fontFamily: 'Source Code Pro, monospace', fontSize: '11px', color: 'var(--text-dark)' }}>
+                          <EnsName address={rew.trader} />
+                        </div>
+                        <div style={{ flex: 1, textAlign: 'right', fontFamily: 'Source Code Pro, monospace', fontSize: '11px', color: 'var(--color-blue)', fontWeight: 'bold' }}>
+                          +${amountUSD} USDC
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )
+            )}
           </div>
         </div>
+
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }

@@ -78,11 +78,11 @@ export default function Trade() {
   }, [])
 
   return (
-    <div className={`app-layout ${!showOrderBook ? 'hide-orderbook' : ''}`}>
+    <div className="app-layout hide-orderbook">
       <Sidebar />
       <TopNav onOpenMarket={() => setIsMarketSelectorOpen(true)} />
       <Chart />
-      {showOrderBook && <OrderBook />}
+      {/* OrderBook disabled */}
       <div
         className="resizer"
         onMouseDown={(e) => {

@@ -12,8 +12,8 @@ import { getContractAddresses } from '../utils/contracts';
 import { useSmartWriteContract } from '../hooks/useSmartWriteContract';
 import { useSpread } from '../hooks/useSpread';
 
-const goldAccent = '#BC8961';
-const goldAccentLight = 'rgba(188, 137, 97, 0.15)';
+const goldAccent = 'var(--gold)';
+const goldAccentLight = 'var(--gold-glow)';
 
 const erc20Abi = [
   {
@@ -372,7 +372,7 @@ export default function OrderPanel() {
   };
 
   const themeBg = 'var(--panel-bg)';
-  const themeControlBg = 'rgba(255, 255, 255, 0.02)';
+  const themeControlBg = 'var(--bg-subtle, rgba(255, 255, 255, 0.02))';
   const themeBorder = 'var(--border-color)';
   const themeText = 'var(--text-dark)';
   const themeTextMuted = 'var(--text-grey)';
@@ -509,33 +509,7 @@ export default function OrderPanel() {
         {/* Available to Trade */}
         <div style={{ display: 'flex', flexShrink: 0, justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', padding: '0 2px' }}>
           <span style={{ color: themeTextMuted, borderBottom: `1px dashed ${themeBorder}`, cursor: 'help' }}>Available to Trade</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ color: themeText, fontFamily: 'Source Code Pro, monospace', fontWeight: 600 }}>{usdcBalance} USDC</span>
-            <button
-              onClick={handleClaimFaucet}
-              disabled={isClaimingFaucet}
-              title="Claim 1,000 USDC Faucet"
-              style={{
-                background: goldAccentLight,
-                color: goldAccent,
-                border: 'none',
-                borderRadius: '2px',
-                width: '16px',
-                height: '16px',
-                fontSize: '11px',
-                fontWeight: '700',
-                cursor: isClaimingFaucet ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                lineHeight: '1',
-                transition: 'all 0.15s',
-                opacity: isClaimingFaucet ? 0.6 : 1
-              }}
-            >
-              {isClaimingFaucet ? '...' : '+'}
-            </button>
-          </div>
+          <span style={{ color: themeText, fontFamily: 'Source Code Pro, monospace', fontWeight: 600 }}>{usdcBalance} USDC</span>
         </div>
 
         {/* Target Price (Limit/Stop only) */}
@@ -785,6 +759,9 @@ export default function OrderPanel() {
                   </div>
                 </div>
               </div>
+
+              {/* Separator line between Take Profit and Stop Loss */}
+              <div style={{ height: '1px', backgroundColor: themeBorder, margin: '0 4px' }} />
 
               {/* Stop Loss Box */}
               <div

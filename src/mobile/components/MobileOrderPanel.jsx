@@ -12,8 +12,8 @@ import { useSmartWriteContract } from '../../hooks/useSmartWriteContract';
 import { useSpread } from '../../hooks/useSpread';
 
 // Common Accent Colors (Theme-aware via CSS variables)
-const goldAccent = '#BC8961';
-const goldAccentLight = 'rgba(188, 137, 97, 0.15)';
+const goldAccent = 'var(--gold)';
+const goldAccentLight = 'var(--gold-glow)';
 const buyColor = 'var(--color-blue)'; // blue
 const sellColor = 'var(--color-red)'; // red
 const buyColorBg = 'var(--color-blue-bg)';

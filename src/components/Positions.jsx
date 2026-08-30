@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useAccount } from 'wagmi';
 import { api } from '../services/api';
 import { useMarketData } from '../context/MarketDataContext';
@@ -7,6 +7,8 @@ import { brokexCoreAbi } from '../abi/brokexCoreAbi';
 import { getContractAddresses } from '../utils/contracts';
 import { calculateEstimatedSpreadLocal, calculatePositionPnLWithSpread } from '../utils/spreadCalculator';
 import { useSmartWriteContract } from '../hooks/useSmartWriteContract';
+import ThemeModal from './ThemeModal';
+import { getSavedBgTheme, getSavedCandleTheme, getSavedAccentTheme } from '../utils/themeManager';
 
 export default function Positions() {
   const { address, isConnected } = useAccount();
@@ -15,6 +17,10 @@ export default function Positions() {
   const { executeWrite, waitForTx } = useSmartWriteContract();
 
   const [activeTab, setActiveTab] = useState('open'); // 'open', 'orders', 'history'
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
+  const [currentBg, setCurrentBg] = useState(getSavedBgTheme());
+  const [currentCandle, setCurrentCandle] = useState(getSavedCandleTheme());
+  const [currentAccent, setCurrentAccent] = useState(getSavedAccentTheme());
 
   const [actionLoadingId, setActionLoadingId] = useState(null);
 
@@ -252,31 +258,43 @@ export default function Positions() {
       .sort((a, b) => Number(b.tradeId) - Number(a.tradeId));
   }, [formattedTrades]);
 
+  const containerRef = useRef(null);
   const [isExpanded, setIsExpanded] = useState(Boolean(isConnected));
-  const [hoveredButton, setHoveredButton] = useState(null); // 'orderbook' | 'positions' | null
+  const [hoveredButton, setHoveredButton] = useState(null); // 'positions' | null
 
+  // Synchronise en temps réel isExpanded avec la hauteur réelle (via ResizeObserver)
   useEffect(() => {
-    setIsExpanded(Boolean(isConnected));
-  }, [isConnected]);
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const height = entry.contentRect.height;
+        setIsExpanded(height > 60);
+      }
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const handleTabClick = (key) => {
     setActiveTab(key);
     document.documentElement.style.setProperty('--positions-height', '240px');
-    setIsExpanded(true);
   };
 
   const handleToggleExpand = () => {
-    if (isExpanded) {
+    const currentH = containerRef.current ? containerRef.current.offsetHeight : (isExpanded ? 240 : 40);
+    if (currentH > 60) {
       document.documentElement.style.setProperty('--positions-height', '40px');
-      setIsExpanded(false);
     } else {
       document.documentElement.style.setProperty('--positions-height', '240px');
-      setIsExpanded(true);
     }
   };
 
   return (
-    <div className="positions panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', overflow: 'visible', zIndex: 100 }}>
+    <div
+      ref={containerRef}
+      className="positions panel"
+      style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', overflow: isExpanded ? 'hidden' : 'visible', zIndex: 100 }}
+    >
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -284,7 +302,7 @@ export default function Positions() {
         padding: '0 10px',
         height: '40px',
         flexShrink: 0,
-        borderBottom: '1px solid var(--border-color)',
+        borderBottom: isExpanded ? '1px solid var(--border-color)' : 'none',
         position: 'relative'
       }}>
         {/* Left Tabs */}
@@ -301,8 +319,8 @@ export default function Positions() {
                 onClick={() => handleTabClick(tab.key)}
                 style={{
                   background: 'transparent',
-                  border: isTabActive ? '1px solid #BC8961' : '1px solid transparent',
-                  color: isTabActive ? '#BC8961' : 'var(--text-grey)',
+                  border: isTabActive ? '1px solid var(--gold)' : '1px solid transparent',
+                  color: isTabActive ? 'var(--gold)' : 'var(--text-grey)',
                   fontSize: '10px',
                   fontWeight: 'bold',
                   padding: '4px 10px',
@@ -351,7 +369,7 @@ export default function Positions() {
               <div style={{
                 position: 'absolute',
                 bottom: '-6px',
-                right: hoveredButton === 'orderbook' ? '42px' : '10px',
+                right: '10px',
                 width: '10px',
                 height: '10px',
                 backgroundColor: '#0c0d11',
@@ -363,7 +381,7 @@ export default function Positions() {
               {/* Title & Status Badge */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '10px', fontWeight: '800', color: '#f1f5f9', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  {hoveredButton === 'orderbook' ? 'Order Book' : 'Positions'}
+                  Positions Drawer
                 </span>
                 <span style={{
                   fontSize: '8.5px',
@@ -371,13 +389,11 @@ export default function Positions() {
                   padding: '1px 6px',
                   borderRadius: '4px',
                   fontFamily: 'Source Code Pro, monospace',
-                  background: (hoveredButton === 'orderbook' ? showOrderBook : isExpanded) ? 'rgba(188, 137, 97, 0.18)' : 'rgba(255, 255, 255, 0.05)',
-                  color: (hoveredButton === 'orderbook' ? showOrderBook : isExpanded) ? '#BC8961' : '#888d96',
-                  border: (hoveredButton === 'orderbook' ? showOrderBook : isExpanded) ? '1px solid rgba(188, 137, 97, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)'
+                  background: isExpanded ? 'rgba(188, 137, 97, 0.18)' : 'rgba(255, 255, 255, 0.05)',
+                  color: isExpanded ? '#BC8961' : '#888d96',
+                  border: isExpanded ? '1px solid rgba(188, 137, 97, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)'
                 }}>
-                  {hoveredButton === 'orderbook'
-                    ? (showOrderBook ? 'SHOWN' : 'HIDDEN')
-                    : (isExpanded ? 'EXPANDED' : 'COLLAPSED')}
+                  {isExpanded ? 'EXPANDED' : 'COLLAPSED'}
                 </span>
               </div>
 
@@ -408,7 +424,7 @@ export default function Positions() {
                   <div style={{ width: '20px', height: '3px', background: 'rgba(255,255,255,0.15)', borderRadius: '1px' }} />
                 </div>
 
-                {/* Middle Section: Chart + OrderBook + OrderPanel */}
+                {/* Middle Section: Chart + OrderPanel */}
                 <div style={{ flex: 1, display: 'flex', gap: '3px', minHeight: 0 }}>
                   {/* Chart */}
                   <div style={{
@@ -427,32 +443,9 @@ export default function Positions() {
                     </svg>
                   </div>
 
-                  {/* OrderBook Wireframe */}
-                  <div style={{
-                    width: '32px',
-                    backgroundColor: hoveredButton === 'orderbook'
-                      ? (showOrderBook ? 'rgba(188, 137, 97, 0.25)' : 'rgba(188, 137, 97, 0.08)')
-                      : (showOrderBook ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.01)'),
-                    border: hoveredButton === 'orderbook'
-                      ? '1.5px solid #BC8961'
-                      : (showOrderBook ? '1px solid rgba(255, 255, 255, 0.1)' : '1px dashed rgba(255, 255, 255, 0.08)'),
-                    borderRadius: '3px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-around',
-                    padding: '2px',
-                    boxShadow: hoveredButton === 'orderbook' ? '0 0 8px rgba(188, 137, 97, 0.3)' : 'none',
-                    transition: 'all 0.2s'
-                  }}>
-                    <div style={{ width: '85%', height: '2px', background: '#BC8961', opacity: showOrderBook ? 0.85 : 0.25, borderRadius: '1px' }} />
-                    <div style={{ width: '60%', height: '2px', background: '#BC8961', opacity: showOrderBook ? 0.65 : 0.2, borderRadius: '1px' }} />
-                    <div style={{ width: '75%', height: '2px', background: '#BC8961', opacity: showOrderBook ? 0.75 : 0.2, borderRadius: '1px' }} />
-                    <div style={{ width: '90%', height: '2px', background: '#BC8961', opacity: showOrderBook ? 0.9 : 0.25, borderRadius: '1px' }} />
-                  </div>
-
                   {/* OrderPanel Wireframe */}
                   <div style={{
-                    width: '34px',
+                    width: '38px',
                     backgroundColor: 'rgba(255, 255, 255, 0.03)',
                     border: '1px solid rgba(255, 255, 255, 0.05)',
                     borderRadius: '3px',
@@ -468,22 +461,16 @@ export default function Positions() {
 
                 {/* Bottom Section: Positions Drawer Wireframe */}
                 <div style={{
-                  height: hoveredButton === 'positions'
-                    ? (isExpanded ? '24px' : '9px')
-                    : (isExpanded ? '20px' : '7px'),
-                  backgroundColor: hoveredButton === 'positions'
-                    ? (isExpanded ? 'rgba(188, 137, 97, 0.25)' : 'rgba(188, 137, 97, 0.08)')
-                    : (isExpanded ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.02)'),
-                  border: hoveredButton === 'positions'
-                    ? '1.5px solid #BC8961'
-                    : (isExpanded ? '1px solid rgba(255, 255, 255, 0.1)' : '1px dashed rgba(255, 255, 255, 0.08)'),
+                  height: isExpanded ? '24px' : '9px',
+                  backgroundColor: isExpanded ? 'rgba(188, 137, 97, 0.25)' : 'rgba(188, 137, 97, 0.08)',
+                  border: isExpanded ? '1.5px solid #BC8961' : '1px dashed rgba(255, 255, 255, 0.08)',
                   borderRadius: '3px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'center',
                   padding: '2px 4px',
                   gap: '2px',
-                  boxShadow: hoveredButton === 'positions' ? '0 0 8px rgba(188, 137, 97, 0.3)' : 'none',
+                  boxShadow: '0 0 8px rgba(188, 137, 97, 0.3)',
                   transition: 'all 0.2s'
                 }}>
                   <div style={{ display: 'flex', gap: '3px' }}>
@@ -498,14 +485,13 @@ export default function Positions() {
 
               {/* Action Hint */}
               <div style={{ fontSize: '9.5px', color: '#94a3b8', textAlign: 'center', fontWeight: '500' }}>
-                {hoveredButton === 'orderbook'
-                  ? (showOrderBook ? 'Click to hide Order Book column' : 'Click to show Order Book column')
-                  : (isExpanded ? 'Click to minimize Positions drawer' : 'Click to expand Positions drawer')}
+                {isExpanded ? 'Click to minimize Positions drawer' : 'Click to expand Positions drawer'}
               </div>
             </div>
           )}
 
-          {/* Button 1: Order Book Toggle */}
+          {/* NOTE: Order Book Toggle Button (temporarily disabled/hidden as requested) */}
+          {/*
           <button
             onClick={() => setShowOrderBook(!showOrderBook)}
             onMouseEnter={() => setHoveredButton('orderbook')}
@@ -541,16 +527,46 @@ export default function Positions() {
               </svg>
             )}
           </button>
+          */}
 
-          {/* Button 2: Toggle Expand / Fold */}
+          {/* Button: Theme Customizer */}
+          <button
+            onClick={() => setIsThemeModalOpen(true)}
+            style={{
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid var(--border-color)',
+              color: 'var(--gold)',
+              width: '28px',
+              height: '28px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s',
+              padding: 0
+            }}
+            title="Customize Theme & Candle Colors"
+            aria-label="Customize Theme & Candle Colors"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+              <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+              <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+              <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" />
+            </svg>
+          </button>
+
+          {/* Toggle Expand / Fold */}
           <button
             onClick={handleToggleExpand}
             onMouseEnter={() => setHoveredButton('positions')}
             onMouseLeave={() => setHoveredButton(null)}
             style={{
-              background: isExpanded ? 'rgba(188, 137, 97, 0.12)' : 'rgba(255, 255, 255, 0.03)',
-              border: isExpanded ? '1px solid #BC8961' : '1px solid var(--border-color)',
-              color: isExpanded ? '#BC8961' : 'var(--text-grey)',
+              background: isExpanded ? 'var(--gold-glow)' : 'rgba(255, 255, 255, 0.03)',
+              border: isExpanded ? '1px solid var(--gold)' : '1px solid var(--border-color)',
+              color: isExpanded ? 'var(--gold)' : 'var(--text-grey)',
               width: '28px',
               height: '28px',
               borderRadius: '6px',
@@ -581,8 +597,9 @@ export default function Positions() {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowX: 'auto', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ width: '100%', minWidth: '850px', display: 'flex', flexDirection: 'column' }}>
+      {isExpanded && (
+        <div style={{ flex: 1, overflowX: 'auto', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ width: '100%', minWidth: '850px', display: 'flex', flexDirection: 'column' }}>
           {/* Table Header */}
           <div style={{
             display: 'flex',
@@ -632,7 +649,7 @@ export default function Positions() {
               padding: '6px 15px',
               fontSize: '11px',
               alignItems: 'center',
-              borderBottom: '1px solid rgba(255,255,255,0.02)',
+              borderBottom: '1px solid var(--border-color)',
               height: '32px'
             }} className="position-row">
               <div style={{ width: '60px', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{pos.id}</div>
@@ -641,7 +658,7 @@ export default function Positions() {
                 <span style={{ fontSize: '7px', padding: '1px 4px', borderRadius: '3px', background: pos.isLong ? 'var(--color-blue-bg)' : 'var(--color-red-bg)', color: pos.isLong ? 'var(--color-blue)' : 'var(--color-red)', fontWeight: 'bold' }}>{pos.side.toUpperCase()}</span>
               </div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: '500' }}>{pos.size}</div>
-              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: '#BC8961', fontWeight: '600' }}>{pos.leverage}</div>
+              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--gold)', fontWeight: '600' }}>{pos.leverage}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {pos.collateral}
               </div>
@@ -692,7 +709,7 @@ export default function Positions() {
               padding: '6px 15px',
               fontSize: '11px',
               alignItems: 'center',
-              borderBottom: '1px solid rgba(255,255,255,0.02)',
+              borderBottom: '1px solid var(--border-color)',
               height: '32px'
             }} className="position-row">
               <div style={{ width: '60px', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{order.id}</div>
@@ -701,13 +718,13 @@ export default function Positions() {
                 <span style={{ fontSize: '7px', padding: '1px 4px', borderRadius: '3px', background: order.isLong ? 'var(--color-blue-bg)' : 'var(--color-red-bg)', color: order.isLong ? 'var(--color-blue)' : 'var(--color-red)', fontWeight: 'bold' }}>{order.side.toUpperCase()}</span>
               </div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: '500' }}>{order.size}</div>
-              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: '#BC8961', fontWeight: '600' }}>{order.leverage}</div>
+              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--gold)', fontWeight: '600' }}>{order.leverage}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{order.collateral}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{order.orderPrice}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--color-red)' }}>{order.liqPrice}</div>
               <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{order.sl}</div>
               <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{order.tp}</div>
-              <div style={{ flex: 1.4, textAlign: 'right', fontWeight: 'bold', color: '#BC8961' }}>{order.status}</div>
+              <div style={{ flex: 1.4, textAlign: 'right', fontWeight: 'bold', color: 'var(--gold)' }}>{order.status}</div>
               <div style={{ width: '75px', textAlign: 'right' }}>
                 <button
                   onClick={() => handleCancelOrder(order.tradeId)}
@@ -743,7 +760,7 @@ export default function Positions() {
               padding: '6px 15px',
               fontSize: '11px',
               alignItems: 'center',
-              borderBottom: '1px solid rgba(255,255,255,0.02)',
+              borderBottom: '1px solid var(--border-color)',
               height: '32px'
             }} className="position-row">
               <div style={{ width: '60px', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{hist.id}</div>
@@ -752,7 +769,7 @@ export default function Positions() {
                 <span style={{ fontSize: '7px', padding: '1px 4px', borderRadius: '3px', background: hist.isLong ? 'var(--color-blue-bg)' : 'var(--color-red-bg)', color: hist.isLong ? 'var(--color-blue)' : 'var(--color-red)', fontWeight: 'bold' }}>{hist.side.toUpperCase()}</span>
               </div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: '500' }}>{hist.size}</div>
-              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: '#BC8961', fontWeight: '600' }}>{hist.leverage}</div>
+              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--gold)', fontWeight: '600' }}>{hist.leverage}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{hist.collateral}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{hist.entryPrice}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{hist.closePrice}</div>
@@ -766,12 +783,27 @@ export default function Positions() {
           ))}
         </div>
       </div>
+      )}
 
       <style>{`
         .position-row:hover {
-          background: rgba(255,255,255,0.03);
+          background: var(--bg-subtle);
         }
       `}</style>
+
+      {/* Theme Customizer Modal */}
+      <ThemeModal
+        isOpen={isThemeModalOpen}
+        onClose={() => setIsThemeModalOpen(false)}
+        currentBg={currentBg}
+        currentCandle={currentCandle}
+        currentAccent={currentAccent}
+        onThemeChange={(newBg, newCandle, newAccent) => {
+          setCurrentBg(newBg);
+          setCurrentCandle(newCandle);
+          setCurrentAccent(newAccent);
+        }}
+      />
     </div>
   );
 }
