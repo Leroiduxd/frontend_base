@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAccount, useChainId, useSwitchChain, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
+import { useAccount, useReadContract, usePublicClient } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { base, baseSepolia } from 'wagmi/chains';
 import { parseUnits, maxUint256 } from 'viem';
@@ -9,6 +9,7 @@ import { brokexCoreAbi } from '../abi/brokexCoreAbi';
 import { api } from '../services/api';
 import { getSavedReferrer, getEffectiveReferrerToSubmit } from '../utils/referral';
 import { getContractAddresses } from '../utils/contracts';
+import { useSmartWriteContract } from '../hooks/useSmartWriteContract';
 import { useSpread } from '../hooks/useSpread';
 
 const goldAccent = '#BC8961';
@@ -72,15 +73,10 @@ export default function OrderPanel() {
   const { showNotification } = useNotifications();
   const { address, isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
+  const { executeWrite, waitForTx } = useSmartWriteContract();
 
   // Adresses centralisées depuis le .env
-  const { core: coreAddress, usdc: usdcAddress, paymasterUrl } = getContractAddresses(isMainnet);
-
-  const capabilities = paymasterUrl && !paymasterUrl.includes('YOUR_CDP_API_KEY') ? {
-    paymasterService: {
-      url: paymasterUrl
-    }
-  } : undefined;
+  const { core: coreAddress, usdc: usdcAddress } = getContractAddresses(isMainnet);
 
   // Lecture en temps réel du solde USDC (ERC20 avec 6 décimales)
   const { data: rawUsdcBalance, refetch: refetchUsdc } = useReadContract({
@@ -228,18 +224,15 @@ export default function OrderPanel() {
     setIsSubmitting(true);
     showNotification("Requesting USDC token approval in wallet...", "info", null, 4000, "USDC");
     try {
-      const approveTxHash = await writeContractAsync({
+      const approveTxHash = await executeWrite({
         address: usdcAddress,
         abi: erc20Abi,
         functionName: 'approve',
         args: [coreAddress, maxUint256],
-        capabilities,
       });
 
-      if (publicClient && approveTxHash) {
-        showNotification("Waiting for USDC approval confirmation on-chain...", "info", null, 4000, "USDC");
-        await publicClient.waitForTransactionReceipt({ hash: approveTxHash });
-      }
+      showNotification("Waiting for USDC approval confirmation on-chain...", "info", null, 4000, "USDC");
+      await waitForTx(approveTxHash);
       showNotification("USDC approved successfully!", "success", approveTxHash, 5000, "USDC");
       await refetchAllowance();
     } catch (err) {
@@ -335,12 +328,11 @@ export default function OrderPanel() {
 
         console.log('[OrderPanel] Submitting openMarket with referrer:', referrerAddress, marketOrderStruct);
 
-        const txHash = await writeContractAsync({
+        const txHash = await executeWrite({
           address: coreAddress,
           abi: brokexCoreAbi,
           functionName: 'openMarket',
           args: [marketOrderStruct, priceUpdateData],
-          capabilities,
         });
 
         showNotification(`Market ${side === 'buy' ? 'Long' : 'Short'} position successfully opened!`, "success", txHash, 7000, "XAU");
@@ -362,12 +354,11 @@ export default function OrderPanel() {
           referrer: referrerAddress,
         };
 
-        const txHash = await writeContractAsync({
+        const txHash = await executeWrite({
           address: coreAddress,
           abi: brokexCoreAbi,
           functionName: 'openOrder',
           args: [pendingOrderStruct],
-          capabilities,
         });
 
         showNotification(`${orderType.toUpperCase()} ${side === 'buy' ? 'Long' : 'Short'} order placed successfully!`, "success", txHash, 7000, "XAU");

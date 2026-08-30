@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useAccount, useWriteContract } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { api } from '../../services/api';
 import { useMarketData } from '../../context/MarketDataContext';
@@ -7,10 +7,12 @@ import { useNotifications } from '../../context/NotificationContext';
 import { brokexCoreAbi } from '../../abi/brokexCoreAbi';
 import { useEnsOrBasename, getCleanReferralSlug, EnsName } from '../../utils/ens.js';
 import { getContractAddresses } from '../../utils/contracts';
+import { useSmartWriteContract } from '../../hooks/useSmartWriteContract';
 
 export default function MobilePortfolio() {
   const { address, isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
+  const { executeWrite, waitForTx } = useSmartWriteContract();
   const { network, isMainnet } = useMarketData();
   const { showNotification } = useNotifications();
   const userBasename = useEnsOrBasename(address);
@@ -148,25 +150,19 @@ export default function MobilePortfolio() {
 
     try {
       const isMainnet = network === 'mainnet';
-      const { core: coreAddress, paymasterUrl } = getContractAddresses(isMainnet);
+      const { core: coreAddress } = getContractAddresses(isMainnet);
 
-      const capabilities = paymasterUrl && !paymasterUrl.includes('YOUR_CDP_API_KEY') ? {
-        paymasterService: {
-          url: paymasterUrl
-        }
-      } : undefined;
-
-      const tx = await writeContractAsync({
+      const tx = await executeWrite({
         address: coreAddress,
         abi: brokexCoreAbi,
         functionName: 'claimReferralRewards',
         args: [],
-        capabilities
       });
 
       showNotification("Referral rewards successfully claimed!", "success", tx, 6000, "USDC");
+      await waitForTx(tx);
       // Rafraîchir les données
-      const updated = await api.getReferrals(address, network || 'testnet');
+      const updated = await api.getReferrals(address, network || 'mainnet');
       if (updated && updated.success) setReferralData(updated);
     } catch (err) {
       console.error("Claim rewards failed:", err);

@@ -8,6 +8,7 @@ import { brokexCoreAbi } from '../../abi/brokexCoreAbi';
 import { api } from '../../services/api';
 import { getSavedReferrer, getEffectiveReferrerToSubmit } from '../../utils/referral';
 import { getContractAddresses } from '../../utils/contracts';
+import { useSmartWriteContract } from '../../hooks/useSmartWriteContract';
 import { useSpread } from '../../hooks/useSpread';
 
 // Common Accent Colors (Theme-aware via CSS variables)
@@ -76,17 +77,10 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
   const { showNotification } = useNotifications();
   const { address, isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const { writeContractAsync } = useWriteContract();
-  const publicClient = usePublicClient();
+  const { executeWrite, waitForTx } = useSmartWriteContract();
 
   // Adresses centralisées depuis le .env
-  const { core: coreAddress, usdc: usdcAddress, paymasterUrl } = getContractAddresses(isMainnet);
-
-  const capabilities = paymasterUrl && !paymasterUrl.includes('YOUR_CDP_API_KEY') ? {
-    paymasterService: {
-      url: paymasterUrl
-    }
-  } : undefined;
+  const { core: coreAddress, usdc: usdcAddress } = getContractAddresses(isMainnet);
 
   const { data: rawUsdcBalance, refetch: refetchUsdc } = useReadContract({
     address: usdcAddress,
@@ -223,18 +217,15 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
     setIsSubmitting(true);
     showNotification("Requesting USDC token approval in wallet...", "info", null, 4000, "USDC");
     try {
-      const approveTxHash = await writeContractAsync({
+      const approveTxHash = await executeWrite({
         address: usdcAddress,
         abi: erc20Abi,
         functionName: 'approve',
         args: [coreAddress, maxUint256],
-        capabilities,
       });
 
-      if (publicClient && approveTxHash) {
-        showNotification("Waiting for USDC approval confirmation on-chain...", "info", null, 4000, "USDC");
-        await publicClient.waitForTransactionReceipt({ hash: approveTxHash });
-      }
+      showNotification("Waiting for USDC approval confirmation on-chain...", "info", null, 4000, "USDC");
+      await waitForTx(approveTxHash);
       showNotification("USDC approved successfully!", "success", approveTxHash, 5000, "USDC");
       await refetchAllowance();
     } catch (err) {
@@ -327,12 +318,11 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
 
         console.log('[MobileOrderPanel] Submitting openMarket with referrer:', referrerAddress, marketOrderStruct);
 
-        const txHash = await writeContractAsync({
+        const txHash = await executeWrite({
           address: coreAddress,
           abi: brokexCoreAbi,
           functionName: 'openMarket',
           args: [marketOrderStruct, priceUpdateData],
-          capabilities,
         });
 
         showNotification(`Market ${side === 'buy' ? 'Long' : 'Short'} position successfully opened!`, "success", txHash, 7000, "XAU");
@@ -353,12 +343,11 @@ export default function MobileOrderPanel({ isOpen, onClose, initialSide = 'buy',
           referrer: referrerAddress,
         };
 
-        const txHash = await writeContractAsync({
+        const txHash = await executeWrite({
           address: coreAddress,
           abi: brokexCoreAbi,
           functionName: 'openOrder',
           args: [pendingOrderStruct],
-          capabilities,
         });
 
         showNotification(`${orderType.toUpperCase()} ${side === 'buy' ? 'Long' : 'Short'} order placed successfully!`, "success", txHash, 7000, "XAU");

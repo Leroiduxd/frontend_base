@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useAccount, useWriteContract } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { api } from '../../services/api';
 import { useMarketData } from '../../context/MarketDataContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { brokexCoreAbi } from '../../abi/brokexCoreAbi';
 import { getContractAddresses } from '../../utils/contracts';
 import { calculateEstimatedSpreadLocal, calculatePositionPnLWithSpread } from '../../utils/spreadCalculator';
+import { useSmartWriteContract } from '../../hooks/useSmartWriteContract';
 
 const goldAccent = '#BC8961';
 const sellColor = '#ef4444'; // red
@@ -14,7 +15,7 @@ export default function MobilePositions({ isFullPage = false }) {
   const { address, isConnected } = useAccount();
   const { network, isMainnet, goldPrice, protocolInfo } = useMarketData();
   const { showNotification } = useNotifications();
-  const { writeContractAsync } = useWriteContract();
+  const { executeWrite, waitForTx } = useSmartWriteContract();
 
   const [activeTab, setActiveTab] = useState('open'); // 'open', 'orders', 'history'
   const [traderTrades, setTraderTrades] = useState([]);
@@ -27,7 +28,7 @@ export default function MobilePositions({ isFullPage = false }) {
   const [isLoading, setIsLoading] = useState(false);
 
   // Brokex Core Contract Address centralisée depuis le .env
-  const { core: coreAddress, paymasterUrl } = getContractAddresses(isMainnet);
+  const { core: coreAddress } = getContractAddresses(isMainnet);
 
   // Polling des trades du trader connecté
   useEffect(() => {
@@ -67,30 +68,20 @@ export default function MobilePositions({ isFullPage = false }) {
     showNotification(`Closing market position #${tradeId}...`, "info", null, 3000, "XAU");
 
     try {
-      const paymasterUrl = isMainnet
-        ? import.meta.env.VITE_PAYMASTER_URL_MAINNET
-        : import.meta.env.VITE_PAYMASTER_URL_TESTNET;
-
-      const capabilities = paymasterUrl && !paymasterUrl.includes('YOUR_CDP_API_KEY') ? {
-        paymasterService: {
-          url: paymasterUrl
-        }
-      } : undefined;
-
       const proofRes = await api.getProof(network);
       if (!proofRes || !Array.isArray(proofRes.priceUpdateData) || proofRes.priceUpdateData.length === 0) {
         throw new Error("Unable to fetch oracle price proof.");
       }
 
-      const txHash = await writeContractAsync({
+      const txHash = await executeWrite({
         address: coreAddress,
         abi: brokexCoreAbi,
         functionName: 'closeMarket',
         args: [BigInt(tradeId), proofRes.priceUpdateData],
-        capabilities,
       });
 
       showNotification(`Position #${tradeId} closed successfully!`, "success", txHash, 7000, "XAU");
+      await waitForTx(txHash);
     } catch (err) {
       console.error("Mobile close market error:", err);
       const msg = err?.shortMessage || err?.message || "Failed to close position";
@@ -107,25 +98,15 @@ export default function MobilePositions({ isFullPage = false }) {
     showNotification(`Cancelling order #${tradeId}...`, "info", null, 3000, "XAU");
 
     try {
-      const paymasterUrl = isMainnet
-        ? import.meta.env.VITE_PAYMASTER_URL_MAINNET
-        : import.meta.env.VITE_PAYMASTER_URL_TESTNET;
-
-      const capabilities = paymasterUrl && !paymasterUrl.includes('YOUR_CDP_API_KEY') ? {
-        paymasterService: {
-          url: paymasterUrl
-        }
-      } : undefined;
-
-      const txHash = await writeContractAsync({
+      const txHash = await executeWrite({
         address: coreAddress,
         abi: brokexCoreAbi,
         functionName: 'cancel',
         args: [BigInt(tradeId)],
-        capabilities,
       });
 
       showNotification(`Order #${tradeId} cancelled successfully!`, "success", txHash, 7000, "XAU");
+      await waitForTx(txHash);
     } catch (err) {
       console.error("Mobile cancel order error:", err);
       const msg = err?.shortMessage || err?.message || "Failed to cancel order";
