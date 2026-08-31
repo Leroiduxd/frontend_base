@@ -1,0 +1,18 @@
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
+  "frame": {
+    "version": "1",
+    "name": "Brokex",
+    "iconUrl": "https://app.brokex.trade/logo.svg",
+    "homeUrl": "https://app.brokex.trade",
+    "imageUrl": "https://app.brokex.trade/logo.svg",
+    "buttonTitle": "Trade Gold & Forex",
+    "splashImageUrl": "https://app.brokex.trade/logo.svg",
+    "splashBackgroundColor": "#000000",
+    "webhookUrl": "https://base.brokex.trade/webhook"
+  }
+}
