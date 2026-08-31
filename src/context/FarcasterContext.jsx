@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import sdk from '@farcaster/frame-sdk';
+import { sdk } from '@farcaster/miniapp-sdk';
+import { useAccount, useConnect } from 'wagmi';
 
 const FarcasterContext = createContext({
+  isMiniApp: false,
   isFarcaster: false,
   farcasterUser: null,
   context: null,
@@ -10,43 +12,61 @@ const FarcasterContext = createContext({
 });
 
 export function FarcasterProvider({ children }) {
-  const [isFarcaster, setIsFarcaster] = useState(false);
+  const [isMiniApp, setIsMiniApp] = useState(false);
   const [farcasterUser, setFarcasterUser] = useState(null);
   const [context, setContext] = useState(null);
+
+  const { isConnected } = useAccount();
+  const { connectors, connect } = useConnect();
 
   useEffect(() => {
     let isMounted = true;
 
-    const initFarcaster = async () => {
+    const initMiniApp = async () => {
       try {
-        // Obtenir le contexte Farcaster s'il est disponible
-        const ctx = await sdk.context;
-        if (isMounted && ctx) {
-          setContext(ctx);
-          if (ctx.user) {
-            setFarcasterUser(ctx.user);
-            setIsFarcaster(true);
+        // Détecte si l'app s'exécute dans une WebView / iframe Mini App (Warpcast ou Base App)
+        const insideMiniApp = await sdk.isInMiniApp();
+        if (isMounted) {
+          setIsMiniApp(insideMiniApp);
+        }
+
+        if (insideMiniApp) {
+          const ctx = await sdk.context;
+          if (isMounted && ctx) {
+            setContext(ctx);
+            if (ctx.user) {
+              setFarcasterUser(ctx.user);
+            }
+          }
+
+          // Connexion automatique au wallet natif de la Mini App si l'utilisateur n'est pas encore connecté
+          if (!isConnected && connectors && connectors.length > 0) {
+            const miniAppConnector = connectors.find(
+              (c) => c.id === 'farcaster' || c.id === 'farcasterMiniApp' || c.name?.toLowerCase().includes('farcaster')
+            );
+            if (miniAppConnector) {
+              connect({ connector: miniAppConnector });
+            }
           }
         }
       } catch (err) {
-        // En dehors de Farcaster / navigateur classique, on ignore l'erreur
-        console.debug("Not running inside Farcaster context:", err);
+        console.debug('Mini App init info (running in standard browser):', err);
       } finally {
-        // CRITIQUE : signale à Warpcast / Base App que l'UI est prête et ferme l'écran de chargement (splash screen)
+        // CRITIQUE : signale à Farcaster / Base App que le chargement est terminé pour enlever l'écran de démarrage
         try {
-          sdk.actions.ready();
+          await sdk.actions.ready();
         } catch (readyErr) {
-          console.debug("sdk.actions.ready() outside frame:", readyErr);
+          console.debug('sdk.actions.ready() executed outside mini-app context:', readyErr);
         }
       }
     };
 
-    initFarcaster();
+    initMiniApp();
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isConnected, connectors, connect]);
 
   const close = () => {
     try {
@@ -65,7 +85,16 @@ export function FarcasterProvider({ children }) {
   };
 
   return (
-    <FarcasterContext.Provider value={{ isFarcaster, farcasterUser, context, close, openUrl }}>
+    <FarcasterContext.Provider
+      value={{
+        isMiniApp,
+        isFarcaster: isMiniApp,
+        farcasterUser,
+        context,
+        close,
+        openUrl,
+      }}
+    >
       {children}
     </FarcasterContext.Provider>
   );
@@ -73,4 +102,14 @@ export function FarcasterProvider({ children }) {
 
 export function useFarcaster() {
   return useContext(FarcasterContext);
+}
+
+export function useMiniAppEnvironment() {
+  const { isMiniApp } = useContext(FarcasterContext);
+  return { isMiniApp };
+}
+
+export function useMiniAppUser() {
+  const { farcasterUser } = useContext(FarcasterContext);
+  return farcasterUser;
 }

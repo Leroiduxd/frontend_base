@@ -4,6 +4,31 @@
     "payload": "",
     "signature": ""
   },
+  "miniapp": {
+    "version": "1",
+    "name": "Brokex",
+    "subtitle": "Trade gold & forex on Base",
+    "description": "Gasless onchain gold, commodities & forex perpetual trading with up to 50x leverage.",
+    "homeUrl": "https://app.brokex.trade",
+    "iconUrl": "https://app.brokex.trade/logo.svg",
+    "splashImageUrl": "https://app.brokex.trade/logo.svg",
+    "splashBackgroundColor": "#000000",
+    "heroImageUrl": "https://app.brokex.trade/logo.svg",
+    "primaryCategory": "finance",
+    "tags": [
+      "gold",
+      "trading",
+      "defi",
+      "base",
+      "xauusd",
+      "forex",
+      "perpetuals"
+    ],
+    "tagline": "Trade gold & commodities onchain",
+    "ogTitle": "Brokex — Gold & Forex Trading on Base",
+    "ogDescription": "Trade XAU/USD with up to 50x leverage on Base.",
+    "ogImageUrl": "https://app.brokex.trade/logo.svg"
+  },
   "frame": {
     "version": "1",
     "name": "Brokex",

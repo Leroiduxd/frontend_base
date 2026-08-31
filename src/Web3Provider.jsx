@@ -1,13 +1,31 @@
 import '@rainbow-me/rainbowkit/styles.css';
-import { getDefaultConfig, RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
+import { getDefaultConfig, getDefaultWallets, RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
 import { WagmiProvider, http } from 'wagmi';
 import { base, baseSepolia } from 'wagmi/chains';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
+
+const farcasterWallet = () => ({
+  id: 'farcaster',
+  name: 'Farcaster / Base App',
+  iconUrl: 'https://app.brokex.trade/logo.svg',
+  iconBackground: '#000000',
+  createConnector: farcasterMiniApp,
+});
+
+const defaultWallets = getDefaultWallets().wallets;
 
 export const config = getDefaultConfig({
   appName: 'Brokex',
   projectId: '0430982e60e771b033c063cf46132717', // WalletConnect Cloud Project ID
   chains: [base, baseSepolia],
+  wallets: [
+    {
+      groupName: 'Mini App & In-App',
+      wallets: [farcasterWallet],
+    },
+    ...defaultWallets,
+  ],
   transports: {
     [base.id]: http('https://mainnet.base.org'),
     [baseSepolia.id]: http('https://sepolia.base.org'),

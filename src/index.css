@@ -73,9 +73,22 @@ button:focus-visible {
   box-shadow: 0 0 0 2px rgba(200, 169, 126, 0.35) !important;
 }
 
-#root {
-  height: 100vh;
-  width: 100vw;
+html, body, #root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  overscroll-behavior: none;
+}
+
+.mini-app-layout {
+  min-height: 100dvh;
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
 }
 
 input,
