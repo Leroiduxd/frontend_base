@@ -7,6 +7,7 @@ import { brokexCoreAbi } from '../../abi/brokexCoreAbi';
 import { getContractAddresses } from '../../utils/contracts';
 import { calculateEstimatedSpreadLocal, calculatePositionPnLWithSpread } from '../../utils/spreadCalculator';
 import { useSmartWriteContract } from '../../hooks/useSmartWriteContract';
+import TradeDetailsDrawer from '../../components/TradeDetailsDrawer';
 
 const goldAccent = '#BC8961';
 const sellColor = '#ef4444'; // red
@@ -18,6 +19,7 @@ export default function MobilePositions({ isFullPage = false }) {
   const { executeWrite, waitForTx } = useSmartWriteContract();
 
   const [activeTab, setActiveTab] = useState('open'); // 'open', 'orders', 'history'
+  const [selectedTradeDetails, setSelectedTradeDetails] = useState(null);
   const [traderTrades, setTraderTrades] = useState([]);
   const [actionLoadingId, setActionLoadingId] = useState(null);
 
@@ -363,9 +365,30 @@ export default function MobilePositions({ isFullPage = false }) {
                   </span>
                 </div>
                 
-                <span style={{ fontSize: '10px', fontFamily: 'Source Code Pro', color: 'var(--text-grey)' }}>
-                  {item.id}
-                </span>
+                <button
+                  onClick={() => setSelectedTradeDetails(item)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: '1px solid var(--border-color)',
+                    color: goldAccent,
+                    borderRadius: '4px',
+                    fontSize: '9px',
+                    fontFamily: 'Source Code Pro',
+                    padding: '2px 6px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px'
+                  }}
+                  title="View onchain proofs & details"
+                >
+                  <span>{item.id}</span>
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                </button>
               </div>
 
               {/* Grid Values */}
@@ -464,7 +487,9 @@ export default function MobilePositions({ isFullPage = false }) {
                 <div>
                   {(activeTab === 'open' || activeTab === 'history') && (
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '9px', color: 'var(--text-grey)' }}>Unrealized PnL</span>
+                      <span style={{ fontSize: '9px', color: 'var(--text-grey)' }}>
+                        {activeTab === 'history' ? 'Realized PnL' : 'Unrealized PnL'}
+                      </span>
                       <span style={{
                         fontSize: '12px',
                         fontWeight: 'bold',
@@ -478,6 +503,30 @@ export default function MobilePositions({ isFullPage = false }) {
                 </div>
 
                 <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    onClick={() => setSelectedTradeDetails(item)}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid var(--border-color)',
+                      color: 'var(--text-grey)',
+                      borderRadius: '4px',
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      padding: '4px 8px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '3px'
+                    }}
+                    title="View onchain proofs & details"
+                  >
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    TXN
+                  </button>
+
                   {activeTab === 'open' && (
                     <button
                       onClick={() => handleCloseMarket(item.tradeId)}
@@ -522,6 +571,16 @@ export default function MobilePositions({ isFullPage = false }) {
           ))
         )}
       </div>
+
+      {/* Trade Details & Onchain Transactions Slide-over Drawer */}
+      <TradeDetailsDrawer
+        isOpen={!!selectedTradeDetails}
+        onClose={() => setSelectedTradeDetails(null)}
+        trade={selectedTradeDetails}
+        isMainnet={isMainnet}
+        currentMarkPrice={goldPrice}
+        protocolInfo={protocolInfo}
+      />
     </div>
   );
 }

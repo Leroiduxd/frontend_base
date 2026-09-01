@@ -28,3 +28,33 @@ export function getContractAddresses(networkOrIsMainnet = 'mainnet') {
   const isMainnet = networkOrIsMainnet === 'mainnet' || networkOrIsMainnet === true;
   return isMainnet ? CONTRACT_ADDRESSES.mainnet : CONTRACT_ADDRESSES.testnet;
 }
+
+/**
+ * Returns BaseScan Explorer URL for a Transaction Hash
+ */
+export function getExplorerTxUrl(txHash, networkOrIsMainnet = 'mainnet') {
+  if (!txHash) return '#';
+  const isMainnet = networkOrIsMainnet === 'mainnet' || networkOrIsMainnet === true;
+  const baseUrl = isMainnet ? 'https://basescan.org' : 'https://sepolia.basescan.org';
+  return `${baseUrl}/tx/${txHash}`;
+}
+
+/**
+ * Returns BaseScan Explorer URL for an Address
+ */
+export function getExplorerAddressUrl(address, networkOrIsMainnet = 'mainnet') {
+  if (!address) return '#';
+  const isMainnet = networkOrIsMainnet === 'mainnet' || networkOrIsMainnet === true;
+  const baseUrl = isMainnet ? 'https://basescan.org' : 'https://sepolia.basescan.org';
+  return `${baseUrl}/address/${address}`;
+}
+
+/**
+ * Returns BaseScan Explorer URL for a Block
+ */
+export function getExplorerBlockUrl(blockNumber, networkOrIsMainnet = 'mainnet') {
+  if (!blockNumber) return '#';
+  const isMainnet = networkOrIsMainnet === 'mainnet' || networkOrIsMainnet === true;
+  const baseUrl = isMainnet ? 'https://basescan.org' : 'https://sepolia.basescan.org';
+  return `${baseUrl}/block/${blockNumber}`;
+}

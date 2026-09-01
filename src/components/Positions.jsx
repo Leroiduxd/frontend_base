@@ -8,6 +8,7 @@ import { getContractAddresses } from '../utils/contracts';
 import { calculateEstimatedSpreadLocal, calculatePositionPnLWithSpread } from '../utils/spreadCalculator';
 import { useSmartWriteContract } from '../hooks/useSmartWriteContract';
 import ThemeModal from './ThemeModal';
+import TradeDetailsDrawer from './TradeDetailsDrawer';
 import { getSavedBgTheme, getSavedCandleTheme, getSavedAccentTheme } from '../utils/themeManager';
 
 export default function Positions() {
@@ -18,6 +19,7 @@ export default function Positions() {
 
   const [activeTab, setActiveTab] = useState('open'); // 'open', 'orders', 'history'
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
+  const [selectedTradeDetails, setSelectedTradeDetails] = useState(null);
   const [currentBg, setCurrentBg] = useState(getSavedBgTheme());
   const [currentCandle, setCurrentCandle] = useState(getSavedCandleTheme());
   const [currentAccent, setCurrentAccent] = useState(getSavedAccentTheme());
@@ -612,7 +614,7 @@ export default function Positions() {
             fontWeight: '600',
             alignItems: 'center'
           }}>
-            <div style={{ width: '60px' }}>ID</div>
+            <div style={{ width: '65px' }}>ID / TXN</div>
             <div style={{ width: '135px' }}>Asset</div>
             <div style={{ flex: 1 }}>Size</div>
             <div style={{ flex: 0.8 }}>Lev.</div>
@@ -626,7 +628,7 @@ export default function Positions() {
             <div style={{ flex: 0.8 }}>SL</div>
             <div style={{ flex: 0.8 }}>TP</div>
             <div style={{ flex: 1.4, textAlign: 'right' }}>{activeTab === 'orders' ? 'Status' : 'PnL (USD/%)'}</div>
-            {activeTab !== 'history' && <div style={{ width: '75px', textAlign: 'right' }}>Action</div>}
+            <div style={{ width: '90px', textAlign: 'right' }}>{activeTab === 'history' ? 'Proofs' : 'Action'}</div>
           </div>
 
           {/* Empty State when Wallet not connected */}
@@ -652,7 +654,27 @@ export default function Positions() {
               borderBottom: '1px solid var(--border-color)',
               height: '32px'
             }} className="position-row">
-              <div style={{ width: '60px', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{pos.id}</div>
+              <div 
+                onClick={() => setSelectedTradeDetails(pos)}
+                style={{
+                  width: '65px',
+                  fontFamily: 'Source Code Pro, monospace',
+                  fontSize: '10px',
+                  color: 'var(--gold)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  cursor: 'pointer'
+                }}
+                title="View onchain proofs & trade details"
+              >
+                <span style={{ textDecoration: 'underline' }}>{pos.id}</span>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}>
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </div>
               <div style={{ width: '135px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ minWidth: '65px' }}>{pos.asset}</span>
                 <span style={{ fontSize: '7px', padding: '1px 4px', borderRadius: '3px', background: pos.isLong ? 'var(--color-blue-bg)' : 'var(--color-red-bg)', color: pos.isLong ? 'var(--color-blue)' : 'var(--color-red)', fontWeight: 'bold' }}>{pos.side.toUpperCase()}</span>
@@ -674,7 +696,32 @@ export default function Positions() {
               <div style={{ flex: 1.4, textAlign: 'right', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: 'bold', color: pos.isProfit ? 'var(--color-blue)' : 'var(--color-red)' }}>
                 {pos.pnlUsd} <span style={{ fontSize: '9px', opacity: 0.8 }}>({pos.pnlPct})</span>
               </div>
-              <div style={{ width: '75px', textAlign: 'right' }}>
+              <div style={{ width: '90px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '4px' }}>
+                <button
+                  onClick={() => setSelectedTradeDetails(pos)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-grey)',
+                    fontSize: '9px',
+                    padding: '2px 5px',
+                    borderRadius: '3px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '2px',
+                    transition: 'all 0.15s'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--gold)'; e.currentTarget.style.borderColor = 'var(--gold)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-grey)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                  title="View onchain proofs & transactions"
+                >
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                  </svg>
+                  TXN
+                </button>
                 <button
                   onClick={() => handleCloseMarket(pos.tradeId)}
                   disabled={actionLoadingId === `close-${pos.tradeId}`}
@@ -712,7 +759,27 @@ export default function Positions() {
               borderBottom: '1px solid var(--border-color)',
               height: '32px'
             }} className="position-row">
-              <div style={{ width: '60px', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{order.id}</div>
+              <div 
+                onClick={() => setSelectedTradeDetails(order)}
+                style={{
+                  width: '65px',
+                  fontFamily: 'Source Code Pro, monospace',
+                  fontSize: '10px',
+                  color: 'var(--gold)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  cursor: 'pointer'
+                }}
+                title="View onchain proofs & trade details"
+              >
+                <span style={{ textDecoration: 'underline' }}>{order.id}</span>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}>
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </div>
               <div style={{ width: '135px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ minWidth: '65px' }}>{order.asset}</span>
                 <span style={{ fontSize: '7px', padding: '1px 4px', borderRadius: '3px', background: order.isLong ? 'var(--color-blue-bg)' : 'var(--color-red-bg)', color: order.isLong ? 'var(--color-blue)' : 'var(--color-red)', fontWeight: 'bold' }}>{order.side.toUpperCase()}</span>
@@ -725,7 +792,32 @@ export default function Positions() {
               <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{order.sl}</div>
               <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{order.tp}</div>
               <div style={{ flex: 1.4, textAlign: 'right', fontWeight: 'bold', color: 'var(--gold)' }}>{order.status}</div>
-              <div style={{ width: '75px', textAlign: 'right' }}>
+              <div style={{ width: '90px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '4px' }}>
+                <button
+                  onClick={() => setSelectedTradeDetails(order)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-grey)',
+                    fontSize: '9px',
+                    padding: '2px 5px',
+                    borderRadius: '3px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '2px',
+                    transition: 'all 0.15s'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--gold)'; e.currentTarget.style.borderColor = 'var(--gold)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-grey)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                  title="View onchain proofs & transactions"
+                >
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                  </svg>
+                  TXN
+                </button>
                 <button
                   onClick={() => handleCancelOrder(order.tradeId)}
                   disabled={actionLoadingId === `cancel-${order.tradeId}`}
@@ -763,7 +855,27 @@ export default function Positions() {
               borderBottom: '1px solid var(--border-color)',
               height: '32px'
             }} className="position-row">
-              <div style={{ width: '60px', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{hist.id}</div>
+              <div 
+                onClick={() => setSelectedTradeDetails(hist)}
+                style={{
+                  width: '65px',
+                  fontFamily: 'Source Code Pro, monospace',
+                  fontSize: '10px',
+                  color: 'var(--gold)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  cursor: 'pointer'
+                }}
+                title="View onchain proofs & trade details"
+              >
+                <span style={{ textDecoration: 'underline' }}>{hist.id}</span>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}>
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </div>
               <div style={{ width: '135px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ minWidth: '65px' }}>{hist.asset}</span>
                 <span style={{ fontSize: '7px', padding: '1px 4px', borderRadius: '3px', background: hist.isLong ? 'var(--color-blue-bg)' : 'var(--color-red-bg)', color: hist.isLong ? 'var(--color-blue)' : 'var(--color-red)', fontWeight: 'bold' }}>{hist.side.toUpperCase()}</span>
@@ -778,6 +890,34 @@ export default function Positions() {
               <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{hist.tp}</div>
               <div style={{ flex: 1.4, textAlign: 'right', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: 'bold', color: hist.isProfit ? 'var(--color-blue)' : 'var(--color-red)' }}>
                 {hist.pnlUsd} <span style={{ fontSize: '9px', opacity: 0.8 }}>({hist.pnlPct})</span>
+              </div>
+              <div style={{ width: '90px', textAlign: 'right' }}>
+                <button
+                  onClick={() => setSelectedTradeDetails(hist)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid var(--border-color)',
+                    color: goldAccent,
+                    fontSize: '9px',
+                    padding: '2px 6px',
+                    borderRadius: '3px',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    fontWeight: '600',
+                    transition: 'all 0.15s'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(188, 137, 97, 0.12)'; e.currentTarget.style.borderColor = goldAccent; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                  title="View onchain proofs & trade details"
+                >
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                  </svg>
+                  TXN ↗
+                </button>
               </div>
             </div>
           ))}
@@ -803,6 +943,16 @@ export default function Positions() {
           setCurrentCandle(newCandle);
           setCurrentAccent(newAccent);
         }}
+      />
+
+      {/* Trade Details & Onchain Transactions Slide-over Drawer */}
+      <TradeDetailsDrawer
+        isOpen={!!selectedTradeDetails}
+        onClose={() => setSelectedTradeDetails(null)}
+        trade={selectedTradeDetails}
+        isMainnet={isMainnet}
+        currentMarkPrice={goldPrice}
+        protocolInfo={protocolInfo}
       />
     </div>
   );
