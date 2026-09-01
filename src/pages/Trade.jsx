@@ -8,10 +8,13 @@ import Positions from '../components/Positions'
 import OrderPanel from '../components/OrderPanel'
 import Ticker from '../components/Ticker'
 import MarketSelector from '../components/MarketSelector'
+import WelcomePromoModal from '../components/WelcomePromoModal'
+import ReferralModal from '../components/ReferralModal'
 import { useMarketData } from '../context/MarketDataContext'
 
 export default function Trade() {
   const [isMarketSelectorOpen, setIsMarketSelectorOpen] = useState(false)
+  const [isReferralOpen, setIsReferralOpen] = useState(false)
   const { showOrderBook } = useMarketData()
   const { isConnected } = useAccount()
   const isDragging = useRef(false)
@@ -94,6 +97,8 @@ export default function Trade() {
       <OrderPanel />
       <Ticker />
       <MarketSelector isOpen={isMarketSelectorOpen} onClose={() => setIsMarketSelectorOpen(false)} />
+      <WelcomePromoModal onReferNow={() => setIsReferralOpen(true)} />
+      <ReferralModal isOpen={isReferralOpen} onClose={() => setIsReferralOpen(false)} />
     </div>
   )
 }

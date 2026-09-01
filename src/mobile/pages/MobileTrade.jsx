@@ -5,6 +5,7 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 import Chart from '../../components/Chart';
 import MobileLayout from '../components/MobileLayout';
 import MobilePortfolio from './MobilePortfolio';
+import WelcomePromoModal from '../../components/WelcomePromoModal';
 import { 
   MobilePositions,
   MobileOrderPanel, 
@@ -464,6 +465,9 @@ export default function MobileTrade() {
         position={selectedPosition}
         initialTab={posManagerTab}
       />
+
+      {/* Welcome Offer Promo Modal */}
+      <WelcomePromoModal onReferNow={() => handleTabChange('portfolio')} />
     </MobileLayout>
   );
 }

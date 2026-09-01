@@ -427,8 +427,8 @@ export default function ReferralModal({ isOpen, onClose }) {
                     </button>
                   ) : (
                     <span style={{ fontSize: '9px', color: 'var(--text-grey)' }}>
-                      Share or scan to earn 20% on every trade
-                    </span>
+                    Share or scan to earn 20% on every trade • <span style={{ color: 'var(--gold)' }}>Note: 1+ trade required to be eligible</span>
+                  </span>
                   )}
                 </div>
 

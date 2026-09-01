@@ -341,7 +341,7 @@ export default function MobilePortfolio() {
             Your Personal Invite Link
           </span>
           <span style={{ fontSize: '9px', color: 'var(--text-grey)' }}>
-            Share & Earn {commissionRatePct}%
+            Share & Earn {commissionRatePct}% • <span style={{ color: 'var(--gold)' }}>1+ trade required</span>
           </span>
         </div>
 
