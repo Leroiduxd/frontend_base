@@ -614,7 +614,7 @@ export default function Positions() {
             fontWeight: '600',
             alignItems: 'center'
           }}>
-            <div style={{ width: '65px' }}>ID / TXN</div>
+            <div style={{ width: '60px' }}>ID</div>
             <div style={{ width: '135px' }}>Asset</div>
             <div style={{ flex: 1 }}>Size</div>
             <div style={{ flex: 0.8 }}>Lev.</div>
@@ -628,7 +628,7 @@ export default function Positions() {
             <div style={{ flex: 0.8 }}>SL</div>
             <div style={{ flex: 0.8 }}>TP</div>
             <div style={{ flex: 1.4, textAlign: 'right' }}>{activeTab === 'orders' ? 'Status' : 'PnL (USD/%)'}</div>
-            <div style={{ width: '90px', textAlign: 'right' }}>{activeTab === 'history' ? 'Proofs' : 'Action'}</div>
+            <div style={{ width: '85px', textAlign: 'right' }}>{activeTab === 'history' ? 'Details' : 'Action'}</div>
           </div>
 
           {/* Empty State when Wallet not connected */}
@@ -657,23 +657,16 @@ export default function Positions() {
               <div 
                 onClick={() => setSelectedTradeDetails(pos)}
                 style={{
-                  width: '65px',
+                  width: '60px',
                   fontFamily: 'Source Code Pro, monospace',
                   fontSize: '10px',
                   color: 'var(--gold)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
                 }}
-                title="View onchain proofs & trade details"
+                title="View trade details & onchain proofs"
               >
-                <span style={{ textDecoration: 'underline' }}>{pos.id}</span>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}>
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                  <polyline points="15 3 21 3 21 9"></polyline>
-                  <line x1="10" y1="14" x2="21" y2="3"></line>
-                </svg>
+                {pos.id}
               </div>
               <div style={{ width: '135px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ minWidth: '65px' }}>{pos.asset}</span>
@@ -687,40 +680,85 @@ export default function Positions() {
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-dark)' }}>{pos.entryPrice}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{pos.marketPrice}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--color-red)' }}>{pos.liqPrice}</div>
+              
+              {/* SL with Edit Icon */}
               <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                {pos.sl}
-              </div>
-              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                {pos.tp}
-              </div>
-              <div style={{ flex: 1.4, textAlign: 'right', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: 'bold', color: pos.isProfit ? 'var(--color-blue)' : 'var(--color-red)' }}>
-                {pos.pnlUsd} <span style={{ fontSize: '9px', opacity: 0.8 }}>({pos.pnlPct})</span>
-              </div>
-              <div style={{ width: '90px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '4px' }}>
+                <span>{pos.sl}</span>
                 <button
                   onClick={() => setSelectedTradeDetails(pos)}
                   style={{
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid var(--border-color)',
+                    background: 'transparent',
+                    border: 'none',
                     color: 'var(--text-grey)',
-                    fontSize: '9px',
-                    padding: '2px 5px',
-                    borderRadius: '3px',
                     cursor: 'pointer',
-                    display: 'flex',
+                    padding: '1px 2px',
+                    display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '2px',
-                    transition: 'all 0.15s'
+                    opacity: 0.6
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--gold)'; e.currentTarget.style.borderColor = 'var(--gold)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-grey)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
-                  title="View onchain proofs & transactions"
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--gold)'; e.currentTarget.style.opacity = 1; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-grey)'; e.currentTarget.style.opacity = 0.6; }}
+                  title="Edit Stop Loss & Take Profit"
                 >
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                   </svg>
-                  TXN
+                </button>
+              </div>
+
+              {/* TP with Edit Icon */}
+              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>{pos.tp}</span>
+                <button
+                  onClick={() => setSelectedTradeDetails(pos)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-grey)',
+                    cursor: 'pointer',
+                    padding: '1px 2px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    opacity: 0.6
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--gold)'; e.currentTarget.style.opacity = 1; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-grey)'; e.currentTarget.style.opacity = 0.6; }}
+                  title="Edit Stop Loss & Take Profit"
+                >
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <div style={{ flex: 1.4, textAlign: 'right', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: 'bold', color: pos.isProfit ? 'var(--color-blue)' : 'var(--color-red)' }}>
+                {pos.pnlUsd} <span style={{ fontSize: '9px', opacity: 0.8 }}>({pos.pnlPct})</span>
+              </div>
+              <div style={{ width: '85px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px' }}>
+                <button
+                  onClick={() => setSelectedTradeDetails(pos)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-grey)',
+                    padding: '2px',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'color 0.15s'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--gold)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-grey)'; }}
+                  title="View trade details & onchain proofs"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
                 </button>
                 <button
                   onClick={() => handleCloseMarket(pos.tradeId)}
@@ -762,23 +800,16 @@ export default function Positions() {
               <div 
                 onClick={() => setSelectedTradeDetails(order)}
                 style={{
-                  width: '65px',
+                  width: '60px',
                   fontFamily: 'Source Code Pro, monospace',
                   fontSize: '10px',
                   color: 'var(--gold)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
                 }}
                 title="View onchain proofs & trade details"
               >
-                <span style={{ textDecoration: 'underline' }}>{order.id}</span>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}>
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                  <polyline points="15 3 21 3 21 9"></polyline>
-                  <line x1="10" y1="14" x2="21" y2="3"></line>
-                </svg>
+                {order.id}
               </div>
               <div style={{ width: '135px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ minWidth: '65px' }}>{order.asset}</span>
@@ -789,34 +820,83 @@ export default function Positions() {
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{order.collateral}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px' }}>{order.orderPrice}</div>
               <div style={{ flex: 1, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--color-red)' }}>{order.liqPrice}</div>
-              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{order.sl}</div>
-              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)' }}>{order.tp}</div>
-              <div style={{ flex: 1.4, textAlign: 'right', fontWeight: 'bold', color: 'var(--gold)' }}>{order.status}</div>
-              <div style={{ width: '90px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '4px' }}>
+              
+              {/* SL with Edit Icon for Orders */}
+              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>{order.sl}</span>
                 <button
                   onClick={() => setSelectedTradeDetails(order)}
                   style={{
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid var(--border-color)',
+                    background: 'transparent',
+                    border: 'none',
                     color: 'var(--text-grey)',
-                    fontSize: '9px',
-                    padding: '2px 5px',
-                    borderRadius: '3px',
                     cursor: 'pointer',
-                    display: 'flex',
+                    padding: '1px 2px',
+                    display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '2px',
-                    transition: 'all 0.15s'
+                    opacity: 0.6
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--gold)'; e.currentTarget.style.borderColor = 'var(--gold)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-grey)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
-                  title="View onchain proofs & transactions"
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--gold)'; e.currentTarget.style.opacity = 1; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-grey)'; e.currentTarget.style.opacity = 0.6; }}
+                  title="Edit Stop Loss & Take Profit"
                 >
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                   </svg>
-                  TXN
+                </button>
+              </div>
+
+              {/* TP with Edit Icon for Orders */}
+              <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>{order.tp}</span>
+                <button
+                  onClick={() => setSelectedTradeDetails(order)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-grey)',
+                    cursor: 'pointer',
+                    padding: '1px 2px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    opacity: 0.6
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--gold)'; e.currentTarget.style.opacity = 1; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-grey)'; e.currentTarget.style.opacity = 0.6; }}
+                  title="Edit Stop Loss & Take Profit"
+                >
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <div style={{ flex: 1.4, textAlign: 'right', fontWeight: 'bold', color: 'var(--gold)' }}>{order.status}</div>
+              <div style={{ width: '85px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px' }}>
+                <button
+                  onClick={() => setSelectedTradeDetails(order)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-grey)',
+                    padding: '2px',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'color 0.15s'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--gold)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-grey)'; }}
+                  title="View onchain proofs & trade details"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
                 </button>
                 <button
                   onClick={() => handleCancelOrder(order.tradeId)}
@@ -858,23 +938,16 @@ export default function Positions() {
               <div 
                 onClick={() => setSelectedTradeDetails(hist)}
                 style={{
-                  width: '65px',
+                  width: '60px',
                   fontFamily: 'Source Code Pro, monospace',
                   fontSize: '10px',
                   color: 'var(--gold)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
                 }}
                 title="View onchain proofs & trade details"
               >
-                <span style={{ textDecoration: 'underline' }}>{hist.id}</span>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}>
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                  <polyline points="15 3 21 3 21 9"></polyline>
-                  <line x1="10" y1="14" x2="21" y2="3"></line>
-                </svg>
+                {hist.id}
               </div>
               <div style={{ width: '135px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ minWidth: '65px' }}>{hist.asset}</span>
@@ -891,32 +964,32 @@ export default function Positions() {
               <div style={{ flex: 1.4, textAlign: 'right', fontFamily: 'Source Code Pro, monospace', fontSize: '10px', fontWeight: 'bold', color: hist.isProfit ? 'var(--color-blue)' : 'var(--color-red)' }}>
                 {hist.pnlUsd} <span style={{ fontSize: '9px', opacity: 0.8 }}>({hist.pnlPct})</span>
               </div>
-              <div style={{ width: '90px', textAlign: 'right' }}>
+              <div style={{ width: '85px', textAlign: 'right' }}>
                 <button
                   onClick={() => setSelectedTradeDetails(hist)}
                   style={{
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid var(--border-color)',
+                    background: 'transparent',
+                    border: 'none',
                     color: goldAccent,
-                    fontSize: '9px',
-                    padding: '2px 6px',
-                    borderRadius: '3px',
+                    fontSize: '10px',
+                    padding: '2px 4px',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '3px',
                     fontWeight: '600',
-                    transition: 'all 0.15s'
+                    transition: 'opacity 0.15s'
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(188, 137, 97, 0.12)'; e.currentTarget.style.borderColor = goldAccent; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.opacity = 0.8; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.opacity = 1; }}
                   title="View onchain proofs & trade details"
                 >
+                  <span>Details</span>
                   <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
                   </svg>
-                  TXN ↗
                 </button>
               </div>
             </div>

@@ -455,23 +455,65 @@ export default function MobilePositions({ isFullPage = false }) {
                 )}
               </div>
 
-              {/* SL / TP row */}
+              {/* SL / TP row with Edit triggers */}
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
+                alignItems: 'center',
                 padding: '6px 8px',
                 background: 'rgba(255,255,255,0.01)',
                 border: '1px dashed var(--border-color)',
                 borderRadius: '6px',
                 fontSize: '10px'
               }}>
-                <div>
-                  <span style={{ color: 'var(--text-grey)', marginRight: '4px' }}>TP:</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                  <span style={{ color: 'var(--text-grey)' }}>TP:</span>
                   <span style={{ color: 'var(--color-blue)', fontFamily: 'Source Code Pro', fontWeight: '500' }}>{item.tp}</span>
+                  {(activeTab === 'open' || activeTab === 'orders') && (
+                    <button
+                      onClick={() => setSelectedTradeDetails(item)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--text-grey)',
+                        cursor: 'pointer',
+                        padding: '1px 3px',
+                        display: 'inline-flex',
+                        alignItems: 'center'
+                      }}
+                      title="Edit Take Profit"
+                    >
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                      </svg>
+                    </button>
+                  )}
                 </div>
-                <div>
-                  <span style={{ color: 'var(--text-grey)', marginRight: '4px' }}>SL:</span>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                  <span style={{ color: 'var(--text-grey)' }}>SL:</span>
                   <span style={{ color: 'var(--color-red)', fontFamily: 'Source Code Pro', fontWeight: '500' }}>{item.sl}</span>
+                  {(activeTab === 'open' || activeTab === 'orders') && (
+                    <button
+                      onClick={() => setSelectedTradeDetails(item)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--text-grey)',
+                        cursor: 'pointer',
+                        padding: '1px 3px',
+                        display: 'inline-flex',
+                        alignItems: 'center'
+                      }}
+                      title="Edit Stop Loss"
+                    >
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -502,7 +544,7 @@ export default function MobilePositions({ isFullPage = false }) {
                   )}
                 </div>
 
-                <div style={{ display: 'flex', gap: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <button
                     onClick={() => setSelectedTradeDetails(item)}
                     style={{
@@ -512,19 +554,19 @@ export default function MobilePositions({ isFullPage = false }) {
                       borderRadius: '4px',
                       fontSize: '10px',
                       fontWeight: 'bold',
-                      padding: '4px 8px',
+                      padding: '4px 7px',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '3px'
                     }}
-                    title="View onchain proofs & details"
+                    title="View details & onchain proofs"
                   >
-                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                      <polyline points="14 2 14 8 20 8"></polyline>
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                      <polyline points="15 3 21 3 21 9"></polyline>
+                      <line x1="10" y1="14" x2="21" y2="3"></line>
                     </svg>
-                    TXN
                   </button>
 
                   {activeTab === 'open' && (
