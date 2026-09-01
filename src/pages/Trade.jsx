@@ -97,7 +97,7 @@ export default function Trade() {
       <OrderPanel />
       <Ticker />
       <MarketSelector isOpen={isMarketSelectorOpen} onClose={() => setIsMarketSelectorOpen(false)} />
-      <WelcomePromoModal onReferNow={() => setIsReferralOpen(true)} />
+      {/* <WelcomePromoModal onReferNow={() => setIsReferralOpen(true)} /> */}
       <ReferralModal isOpen={isReferralOpen} onClose={() => setIsReferralOpen(false)} />
     </div>
   )
