@@ -21,9 +21,9 @@ function App() {
       <ReferralHandler />
       <Routes>
         <Route path="/" element={isMobile ? <MobileTrade /> : <Trade />} />
-        <Route path="/portfolio" element={<Referrals />} />
-        <Route path="/referrals" element={<Referrals />} />
-        <Route path="/referral" element={<Referrals />} />
+        <Route path="/portfolio" element={isMobile ? <MobileTrade /> : <Referrals />} />
+        <Route path="/referrals" element={isMobile ? <MobileTrade /> : <Referrals />} />
+        <Route path="/referral" element={isMobile ? <MobileTrade /> : <Referrals />} />
         <Route path="/market" element={isMobile ? <MobileTrade /> : <Markets />} />
         <Route path="/vault" element={isMobile ? <MobileTrade /> : <Vault />} />
         <Route path="/airdrop" element={<Airdrop />} />

@@ -6,6 +6,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import Sidebar from '../components/Sidebar';
 import useIsMobile from '../hooks/useIsMobile';
 import MobileLayout from '../mobile/components/MobileLayout';
+import MobileTrade from '../mobile/pages/MobileTrade';
 import { api } from '../services/api';
 import { useMarketData } from '../context/MarketDataContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -714,102 +715,8 @@ export default function Referrals() {
     </div>
   );
 
-  // Mobile rendering wrapped in MobileLayout with sticky bottom navigation tabs
   if (isMobile) {
-    return (
-      <MobileLayout disablePadding={true}>
-        <style>{`
-          .mobile-referral-scroll {
-            flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            padding: 8px 8px 30px 8px;
-          }
-          .mobile-bottom-tabs {
-            display: flex;
-            background: rgba(10, 10, 10, 0.92);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border-top: 1px solid var(--border-color);
-            height: 46px;
-            padding-bottom: env(safe-area-inset-bottom, 0);
-            align-items: center;
-            justify-content: space-around;
-            z-index: 1000;
-            flex-shrink: 0;
-          }
-          body.light-mode .mobile-bottom-tabs {
-            background: rgba(255, 255, 255, 0.92);
-          }
-          .mobile-tab-item {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-grey);
-            cursor: pointer;
-            gap: 6px;
-            flex: 1;
-            height: 100%;
-            transition: all 0.2s ease;
-            border: none;
-            background: transparent;
-            outline: none;
-          }
-          .mobile-tab-item.active,
-          .mobile-tab-item:active {
-            color: var(--gold);
-          }
-          .mobile-tab-label {
-            font-size: 10px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-          }
-        `}</style>
-
-        {/* Scrollable Referral content */}
-        <div className="mobile-referral-scroll">
-          {content}
-        </div>
-
-        {/* Sticky Bottom Tab Bar */}
-        <footer className="mobile-bottom-tabs">
-          {/* Markets Tab Button */}
-          <button 
-            className="mobile-tab-item"
-            onClick={() => navigate('/market')}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" />
-            </svg>
-            <span className="mobile-tab-label">Markets</span>
-          </button>
-
-          {/* Trade Tab Button */}
-          <button 
-            className="mobile-tab-item"
-            onClick={() => navigate('/')}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <rect width="18" height="18" x="3" y="3" rx="2" /><circle cx="12" cy="12" r="3" /><path d="m14 10 2-2" /><path d="m10 14-2 2" /><path d="m14 14 2 2" /><path d="m10 10-2-2" />
-            </svg>
-            <span className="mobile-tab-label">Trade</span>
-          </button>
-
-          {/* Referral Tab Button (Active) */}
-          <button 
-            className="mobile-tab-item active"
-            onClick={() => navigate('/referrals')}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-            <span className="mobile-tab-label">Referral</span>
-          </button>
-        </footer>
-      </MobileLayout>
-    );
+    return <MobileTrade />;
   }
 
   // Desktop rendering wrapped with Sidebar & Framed Panel matching Airdrop.jsx

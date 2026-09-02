@@ -52,12 +52,20 @@ export default function MobileTrade() {
   const location = useLocation();
 
   // Primary active tab switcher: 'markets', 'trade', 'portfolio'
-  // On first load, land directly on 'trade' (Order Panel), unless path is /portfolio or /markets
+  // On first load, land directly on 'trade' (Order Panel), unless path is /portfolio, /referrals or /markets
   const [activeTab, setActiveTab] = useState(() => {
-    if (location.pathname === '/portfolio') return 'portfolio';
-    if (location.pathname === '/markets') return 'markets';
+    if (location.pathname === '/portfolio' || location.pathname === '/referrals' || location.pathname === '/referral') return 'portfolio';
+    if (location.pathname === '/markets' || location.pathname === '/market') return 'markets';
     return 'trade';
   });
+
+  useEffect(() => {
+    if (location.pathname === '/portfolio' || location.pathname === '/referrals' || location.pathname === '/referral') {
+      setActiveTab('portfolio');
+    } else if (location.pathname === '/markets' || location.pathname === '/market') {
+      setActiveTab('markets');
+    }
+  }, [location.pathname]);
 
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
