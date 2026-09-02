@@ -284,11 +284,11 @@ export default function ReferralModal({ isOpen, onClose }) {
                   fgColor="#000000"
                   bgColor="#ffffff"
                   imageSettings={{
-                    src: '/logo.svg',
+                    src: '/logo-gold.svg',
                     x: undefined,
                     y: undefined,
-                    height: 24,
-                    width: 24,
+                    height: 26,
+                    width: 26,
                     excavate: true,
                   }}
                 />

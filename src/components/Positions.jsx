@@ -20,6 +20,7 @@ export default function Positions() {
   const [activeTab, setActiveTab] = useState('open'); // 'open', 'orders', 'history'
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
   const [selectedTradeDetails, setSelectedTradeDetails] = useState(null);
+  const [openInEditMode, setOpenInEditMode] = useState(false);
   const [currentBg, setCurrentBg] = useState(getSavedBgTheme());
   const [currentCandle, setCurrentCandle] = useState(getSavedCandleTheme());
   const [currentAccent, setCurrentAccent] = useState(getSavedAccentTheme());
@@ -90,32 +91,28 @@ export default function Positions() {
   };
 
   // Récupération des trades du trader connecté
-  useEffect(() => {
+  const fetchTraderData = async () => {
     if (!isConnected || !address) {
       setTraderTrades([]);
       return;
     }
-
-    let isMounted = true;
-    const fetchTraderData = async () => {
-      try {
-        const res = await api.getTraderTrades(address, network);
-        if (!isMounted) return;
-        if (res && Array.isArray(res.trades)) {
-          setTraderTrades(res.trades);
-        } else {
-          setTraderTrades([]);
-        }
-      } catch (err) {
-        console.warn("Failed to fetch trader trades:", err);
+    try {
+      const res = await api.getTraderTrades(address, network);
+      if (res && Array.isArray(res.trades)) {
+        setTraderTrades(res.trades);
+      } else {
+        setTraderTrades([]);
       }
-    };
+    } catch (err) {
+      console.warn("Failed to fetch trader trades:", err);
+    }
+  };
 
+  useEffect(() => {
     fetchTraderData();
     const interval = setInterval(fetchTraderData, 3000);
 
     return () => {
-      isMounted = false;
       clearInterval(interval);
     };
   }, [address, isConnected, network]);
@@ -661,7 +658,7 @@ export default function Positions() {
               height: '32px'
             }} className="position-row">
               <div 
-                onClick={() => setSelectedTradeDetails(pos)}
+                onClick={() => { setOpenInEditMode(false); setSelectedTradeDetails(pos); }}
                 style={{
                   width: '60px',
                   fontFamily: 'Source Code Pro, monospace',
@@ -691,7 +688,7 @@ export default function Positions() {
               <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span>{pos.sl}</span>
                 <button
-                  onClick={() => setSelectedTradeDetails(pos)}
+                  onClick={() => { setOpenInEditMode(true); setSelectedTradeDetails(pos); }}
                   style={{
                     background: 'transparent',
                     border: 'none',
@@ -717,7 +714,7 @@ export default function Positions() {
               <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span>{pos.tp}</span>
                 <button
-                  onClick={() => setSelectedTradeDetails(pos)}
+                  onClick={() => { setOpenInEditMode(true); setSelectedTradeDetails(pos); }}
                   style={{
                     background: 'transparent',
                     border: 'none',
@@ -744,7 +741,7 @@ export default function Positions() {
               </div>
               <div style={{ width: '85px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px' }}>
                 <button
-                  onClick={() => setSelectedTradeDetails(pos)}
+                  onClick={() => { setOpenInEditMode(false); setSelectedTradeDetails(pos); }}
                   style={{
                     background: 'transparent',
                     border: 'none',
@@ -804,7 +801,7 @@ export default function Positions() {
               height: '32px'
             }} className="position-row">
               <div 
-                onClick={() => setSelectedTradeDetails(order)}
+                onClick={() => { setOpenInEditMode(false); setSelectedTradeDetails(order); }}
                 style={{
                   width: '60px',
                   fontFamily: 'Source Code Pro, monospace',
@@ -831,7 +828,7 @@ export default function Positions() {
               <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span>{order.sl}</span>
                 <button
-                  onClick={() => setSelectedTradeDetails(order)}
+                  onClick={() => { setOpenInEditMode(true); setSelectedTradeDetails(order); }}
                   style={{
                     background: 'transparent',
                     border: 'none',
@@ -857,7 +854,7 @@ export default function Positions() {
               <div style={{ flex: 0.8, fontFamily: 'Source Code Pro, monospace', fontSize: '10px', color: 'var(--text-grey)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span>{order.tp}</span>
                 <button
-                  onClick={() => setSelectedTradeDetails(order)}
+                  onClick={() => { setOpenInEditMode(true); setSelectedTradeDetails(order); }}
                   style={{
                     background: 'transparent',
                     border: 'none',
@@ -882,7 +879,7 @@ export default function Positions() {
               <div style={{ flex: 1.4, textAlign: 'right', fontWeight: 'bold', color: 'var(--gold)' }}>{order.status}</div>
               <div style={{ width: '85px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px' }}>
                 <button
-                  onClick={() => setSelectedTradeDetails(order)}
+                  onClick={() => { setOpenInEditMode(false); setSelectedTradeDetails(order); }}
                   style={{
                     background: 'transparent',
                     border: 'none',
@@ -942,7 +939,7 @@ export default function Positions() {
               height: '32px'
             }} className="position-row">
               <div 
-                onClick={() => setSelectedTradeDetails(hist)}
+                onClick={() => { setOpenInEditMode(false); setSelectedTradeDetails(hist); }}
                 style={{
                   width: '60px',
                   fontFamily: 'Source Code Pro, monospace',
@@ -972,7 +969,7 @@ export default function Positions() {
               </div>
               <div style={{ width: '85px', textAlign: 'right' }}>
                 <button
-                  onClick={() => setSelectedTradeDetails(hist)}
+                  onClick={() => { setOpenInEditMode(false); setSelectedTradeDetails(hist); }}
                   style={{
                     background: 'transparent',
                     border: 'none',
@@ -1027,11 +1024,19 @@ export default function Positions() {
       {/* Trade Details & Onchain Transactions Slide-over Drawer */}
       <TradeDetailsDrawer
         isOpen={!!selectedTradeDetails}
-        onClose={() => setSelectedTradeDetails(null)}
+        onClose={() => {
+          setSelectedTradeDetails(null);
+          setOpenInEditMode(false);
+        }}
         trade={selectedTradeDetails}
         isMainnet={isMainnet}
         currentMarkPrice={goldPrice}
         protocolInfo={protocolInfo}
+        initialEditMode={openInEditMode}
+        onCloseMarket={handleCloseMarket}
+        onCancelOrder={handleCancelOrder}
+        actionLoadingId={actionLoadingId}
+        onTradeUpdated={fetchTraderData}
       />
     </div>
   );

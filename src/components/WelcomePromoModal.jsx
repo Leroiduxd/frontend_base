@@ -118,7 +118,7 @@ export default function WelcomePromoModal() {
             color: 'var(--text-grey)',
             lineHeight: '1.5'
           }}>
-            Starts September 5, 2026, at 00:00 UTC. Open positions on Brokex, hold for at least 1 hour, and submit your participation to qualify for random draws and performance rewards.
+            Starts September 3, 2026, at 00:00 UTC. Open positions on Brokex, hold for at least 1 hour, and submit your participation to qualify for random draws and performance rewards.
           </p>
 
           {/* Clean Flat Specification Rows */}

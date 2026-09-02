@@ -9,6 +9,7 @@ import MobileTrade from './mobile/pages/MobileTrade'
 import MobilePortfolio from './mobile/pages/MobilePortfolio'
 import MobileVault from './mobile/pages/MobileVault'
 import Airdrop from './pages/Airdrop'
+import Referrals from './pages/Referrals'
 import { ReferralHandler } from './utils/referral'
 import './App.css'
 
@@ -20,7 +21,9 @@ function App() {
       <ReferralHandler />
       <Routes>
         <Route path="/" element={isMobile ? <MobileTrade /> : <Trade />} />
-        <Route path="/portfolio" element={isMobile ? <MobileTrade /> : <Trade />} />
+        <Route path="/portfolio" element={<Referrals />} />
+        <Route path="/referrals" element={<Referrals />} />
+        <Route path="/referral" element={<Referrals />} />
         <Route path="/market" element={isMobile ? <MobileTrade /> : <Markets />} />
         <Route path="/vault" element={isMobile ? <MobileTrade /> : <Vault />} />
         <Route path="/airdrop" element={<Airdrop />} />

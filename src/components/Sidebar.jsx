@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import ReferralModal from './ReferralModal';
 import BrokexLogo from './BrokexLogo';
 
 export default function Sidebar() {
   const location = useLocation();
   const activePath = location.pathname;
-  const [isReferralOpen, setIsReferralOpen] = useState(false);
 
   const menuItems = [
     { 
@@ -32,6 +30,18 @@ export default function Sidebar() {
           <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
         </svg>
       )
+    },
+    { 
+      path: '/referrals', 
+      label: 'Referral Program', 
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      )
     }
   ];
 
@@ -40,6 +50,12 @@ export default function Sidebar() {
   const toggleTheme = () => {
     setIsLightMode(!isLightMode);
     document.body.classList.toggle('light-mode');
+  };
+
+  const isItemActive = (itemPath) => {
+    if (activePath === itemPath) return true;
+    if (itemPath === '/referrals' && (activePath === '/referral' || activePath === '/portfolio')) return true;
+    return false;
   };
 
   return (
@@ -112,26 +128,12 @@ export default function Sidebar() {
           <Link 
             key={item.path}
             to={item.path} 
-            className={`sidebar-item ${activePath === item.path ? 'active' : ''}`}
+            className={`sidebar-item ${isItemActive(item.path) ? 'active' : ''}`}
             title={item.label}
           >
             {item.icon}
           </Link>
         ))}
-
-        {/* Referral Program Button */}
-        <div 
-          className={`sidebar-item ${isReferralOpen ? 'active' : ''}`}
-          onClick={() => setIsReferralOpen(true)}
-          title="Referral Program"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-        </div>
       </nav>
 
       {/* Bottom Actions */}
@@ -218,12 +220,6 @@ export default function Sidebar() {
           }}
         </ConnectButton.Custom>
       </div>
-
-      {/* Referral Program Modal */}
-      <ReferralModal
-        isOpen={isReferralOpen}
-        onClose={() => setIsReferralOpen(false)}
-      />
     </div>
   );
 }

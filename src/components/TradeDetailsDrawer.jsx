@@ -5,6 +5,7 @@ import { calculateEstimatedSpreadLocal } from '../utils/spreadCalculator';
 import { brokexCoreAbi } from '../abi/brokexCoreAbi';
 import { useSmartWriteContract } from '../hooks/useSmartWriteContract';
 import { useNotifications } from '../context/NotificationContext';
+import { api } from '../services/api';
 
 export default function TradeDetailsDrawer({ 
   isOpen, 
@@ -13,7 +14,11 @@ export default function TradeDetailsDrawer({
   isMainnet, 
   currentMarkPrice, 
   protocolInfo,
-  onTradeUpdated 
+  onTradeUpdated,
+  initialEditMode = false,
+  onCloseMarket,
+  onCancelOrder,
+  actionLoadingId
 }) {
   const { executeWrite, waitForTx } = useSmartWriteContract();
   const { showNotification } = useNotifications();
@@ -23,8 +28,15 @@ export default function TradeDetailsDrawer({
   const [isUpdatingStops, setIsUpdatingStops] = useState(false);
   const [activeFocusedInput, setActiveFocusedInput] = useState(null);
 
-  // Edit Mode for TP / SL (closed by default)
-  const [isEditingStops, setIsEditingStops] = useState(false);
+  // Edit Mode for TP / SL (opened automatically if initialEditMode is true)
+  const [isEditingStops, setIsEditingStops] = useState(Boolean(initialEditMode));
+  const [isLocalClosing, setIsLocalClosing] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsEditingStops(Boolean(initialEditMode));
+    }
+  }, [isOpen, initialEditMode]);
 
   // Form states for Stop Loss and Take Profit
   const [tpInput, setTpInput] = useState('');
@@ -250,6 +262,79 @@ export default function TradeDetailsDrawer({
       showNotification(msg.length > 80 ? msg.slice(0, 80) + '...' : msg, 'error', null, 5000, 'XAU');
     } finally {
       setIsUpdatingStops(false);
+    }
+  };
+
+  const tradeId = raw.tradeId || trade?.tradeId;
+  const isActionLoading = isLocalClosing || actionLoadingId === `close-${tradeId}` || actionLoadingId === `cancel-${tradeId}`;
+
+  const handleExecuteClose = async () => {
+    if (!tradeId || isActionLoading) return;
+
+    if (status === 'OPEN') {
+      if (onCloseMarket) {
+        try {
+          await onCloseMarket(tradeId);
+          onClose();
+        } catch (err) {
+          console.error("Close market via prop failed:", err);
+        }
+      } else {
+        setIsLocalClosing(true);
+        showNotification(`Closing market position #${tradeId}...`, "info", null, 3000, "XAU");
+        try {
+          const proofRes = await api.getProof(isMainnet ? 'mainnet' : 'testnet');
+          if (!proofRes || !Array.isArray(proofRes.priceUpdateData) || proofRes.priceUpdateData.length === 0) {
+            throw new Error("Unable to fetch oracle price proof.");
+          }
+          const txHash = await executeWrite({
+            address: coreAddress,
+            abi: brokexCoreAbi,
+            functionName: 'closeMarket',
+            args: [BigInt(tradeId), proofRes.priceUpdateData],
+          });
+          showNotification(`Position #${tradeId} closed successfully!`, "success", txHash, 7000, "XAU");
+          await waitForTx(txHash);
+          if (onTradeUpdated) onTradeUpdated();
+          onClose();
+        } catch (err) {
+          console.error("Close market error:", err);
+          const msg = err?.shortMessage || err?.message || "Failed to close position";
+          showNotification(msg.length > 90 ? msg.slice(0, 90) + '...' : msg, "error", null, 6000, "XAU");
+        } finally {
+          setIsLocalClosing(false);
+        }
+      }
+    } else if (status === 'CREATED') {
+      if (onCancelOrder) {
+        try {
+          await onCancelOrder(tradeId);
+          onClose();
+        } catch (err) {
+          console.error("Cancel order via prop failed:", err);
+        }
+      } else {
+        setIsLocalClosing(true);
+        showNotification(`Cancelling order #${tradeId}...`, "info", null, 3000, "XAU");
+        try {
+          const txHash = await executeWrite({
+            address: coreAddress,
+            abi: brokexCoreAbi,
+            functionName: 'cancel',
+            args: [BigInt(tradeId)],
+          });
+          showNotification(`Order #${tradeId} cancelled successfully!`, "success", txHash, 7000, "XAU");
+          await waitForTx(txHash);
+          if (onTradeUpdated) onTradeUpdated();
+          onClose();
+        } catch (err) {
+          console.error("Cancel order error:", err);
+          const msg = err?.shortMessage || err?.message || "Failed to cancel order";
+          showNotification(msg.length > 90 ? msg.slice(0, 90) + '...' : msg, "error", null, 6000, "XAU");
+        } finally {
+          setIsLocalClosing(false);
+        }
+      }
     }
   };
 
@@ -989,6 +1074,74 @@ export default function TradeDetailsDrawer({
           </div>
 
         </div>
+
+        {/* Sticky Bottom Action Bar: Close Position (Market) or Cancel Limit Order */}
+        {(status === 'OPEN' || status === 'CREATED') && (
+          <div style={{
+            padding: '12px 14px',
+            borderTop: `1px solid ${themeBorder}`,
+            backgroundColor: 'var(--panel-bg, #080808)',
+            flexShrink: 0
+          }}>
+            {status === 'OPEN' ? (
+              <button
+                onClick={handleExecuteClose}
+                disabled={isActionLoading}
+                style={{
+                  width: '100%',
+                  height: '38px',
+                  backgroundColor: 'var(--color-red, #ef4444)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: '700',
+                  cursor: isActionLoading ? 'not-allowed' : 'pointer',
+                  opacity: isActionLoading ? 0.7 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  transition: 'opacity 0.15s, transform 0.1s'
+                }}
+              >
+                {isActionLoading ? (
+                  <span>Closing Position...</span>
+                ) : (
+                  <span>Close Position (Market)</span>
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={handleExecuteClose}
+                disabled={isActionLoading}
+                style={{
+                  width: '100%',
+                  height: '38px',
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  color: 'var(--color-red, #ef4444)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: '700',
+                  cursor: isActionLoading ? 'not-allowed' : 'pointer',
+                  opacity: isActionLoading ? 0.7 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  transition: 'all 0.15s'
+                }}
+              >
+                {isActionLoading ? (
+                  <span>Cancelling Order...</span>
+                ) : (
+                  <span>Cancel Limit Order</span>
+                )}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>,
     document.body

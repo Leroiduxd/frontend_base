@@ -11,27 +11,32 @@ export default function Airdrop() {
   const navigate = useNavigate();
 
   const content = (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '16px',
-      color: 'var(--text-dark)',
-      width: '100%',
-      maxWidth: '800px',
-      margin: '0 auto',
-      paddingBottom: '60px'
-    }}>
+    <div className="airdrop-unified-panel">
       <style>{`
-        .airdrop-card {
+        .airdrop-unified-panel {
+          width: 100%;
+          max-width: 800px;
+          margin: 0 auto 60px auto;
           background-color: var(--panel-bg);
           border: 1px solid var(--border-color);
           border-radius: 8px;
-          padding: 20px 24px;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+          color: var(--text-dark);
+        }
+        .airdrop-card {
+          border-bottom: 1px solid var(--border-color);
+          padding: 24px 26px;
+          background-color: transparent;
+        }
+        .airdrop-card:last-child {
+          border-bottom: none;
         }
         @media (max-width: 600px) {
           .airdrop-card {
-            padding: 16px 14px !important;
+            padding: 18px 14px !important;
           }
         }
         .airdrop-primary-btn:hover {
@@ -99,7 +104,7 @@ export default function Airdrop() {
           color: 'var(--text-grey)',
           lineHeight: '1.55'
         }}>
-          Campaign starts <strong style={{ color: 'var(--text-dark)' }}>September 5, 2026, at 00:00 UTC</strong>. Trade on Brokex, hold your positions for at least 1 hour, and submit your participation to share $250 USDC across 25 winners.
+          Campaign starts <strong style={{ color: 'var(--text-dark)' }}>September 3, 2026, at 00:00 UTC</strong>. Trade on Brokex, hold your positions for at least 1 hour, and submit your participation to share $250 USDC across 25 winners.
         </p>
 
         {/* Action Buttons */}
@@ -762,7 +767,7 @@ export default function Airdrop() {
           {/* Referral Tab Button */}
           <button 
             className="mobile-tab-item"
-            onClick={() => navigate('/portfolio')}
+            onClick={() => navigate('/referrals')}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
@@ -804,17 +809,31 @@ export default function Airdrop() {
       {/* LEFT COLUMN: Sidebar */}
       <Sidebar />
 
-      {/* CENTER / MAIN VIEW */}
+      {/* CENTER / MAIN VIEW: Framed panel matching Brokex design system */}
       <div 
-        className="airdrop-page-scroll"
+        className="panel"
         style={{ 
           flex: 1, 
           height: '100%',
-          overflowY: 'auto',
-          padding: '10px 20px 20px 20px'
+          backgroundColor: 'var(--panel-bg)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '8px',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
         }}
       >
-        {content}
+        <div 
+          className="airdrop-page-scroll"
+          style={{ 
+            flex: 1, 
+            height: '100%',
+            overflowY: 'auto',
+            padding: '20px 20px 20px 20px'
+          }}
+        >
+          {content}
+        </div>
       </div>
     </div>
   );
