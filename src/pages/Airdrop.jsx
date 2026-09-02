@@ -29,6 +29,11 @@ export default function Airdrop() {
           padding: 20px 24px;
           box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
         }
+        @media (max-width: 600px) {
+          .airdrop-card {
+            padding: 16px 14px !important;
+          }
+        }
         .airdrop-primary-btn:hover {
           opacity: 0.92;
           transform: translateY(-1px);
@@ -681,7 +686,7 @@ export default function Airdrop() {
             flex: 1;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
-            padding: 12px 14px 24px 14px;
+            padding: 8px 8px 30px 8px;
           }
           .mobile-bottom-tabs {
             display: flex;

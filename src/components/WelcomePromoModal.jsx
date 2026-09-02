@@ -33,109 +33,89 @@ export default function WelcomePromoModal() {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
+        backgroundColor: 'rgba(0, 0, 0, 0.82)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
         zIndex: 99999999,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '12px',
-        animation: 'promoFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+        padding: '16px',
+        animation: 'modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
       }}
       onClick={handleClose}
     >
       <style>{`
-        @keyframes promoFadeIn {
-          from { opacity: 0; transform: scale(0.97); }
-          to { opacity: 1; transform: scale(1); }
+        @keyframes modalFadeIn {
+          from { opacity: 0; transform: scale(0.96) translateY(6px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
         }
-        .promo-btn-primary:hover {
+        .promo-cta-btn:hover {
           opacity: 0.92;
           transform: translateY(-1px);
         }
-        .promo-btn-primary:active {
+        .promo-cta-btn:active {
           transform: translateY(0);
         }
-        .promo-btn-secondary:hover {
-          background-color: rgba(255, 255, 255, 0.08) !important;
-          border-color: var(--gold) !important;
+        .promo-ghost-btn:hover {
           color: var(--text-dark) !important;
         }
-        .promo-scrollable::-webkit-scrollbar {
-          display: none;
-        }
-        .promo-scrollable {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        @media (max-width: 540px) {
-          .promo-reward-card-desktop {
-            display: none !important;
-          }
-          .promo-grid-steps {
-            grid-template-columns: 1fr !important;
-            gap: 8px !important;
-          }
-          .promo-hero-row {
-            flex-direction: column !important;
-            align-items: stretch !important;
-            gap: 0 !important;
-          }
-          .promo-footer-btns {
-            flex-direction: column !important;
-          }
+        .promo-row-hover:hover {
+          background-color: rgba(255, 255, 255, 0.02);
         }
       `}</style>
 
-      {/* Main Container - Fully responsive for Desktop & Mobile */}
+      {/* Main Luxury Dark Card */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="promo-scrollable"
         style={{
           width: '100%',
-          maxWidth: '540px',
-          maxHeight: '92vh',
-          overflowY: 'auto',
+          maxWidth: '460px',
           backgroundColor: '#0a0a0c',
-          border: '1px solid var(--border-color)',
-          borderRadius: '10px',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(188, 137, 97, 0.1)',
+          border: '1px solid rgba(188, 137, 97, 0.28)',
+          borderRadius: '12px',
+          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(188, 137, 97, 0.12)',
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
+          overflow: 'hidden',
           color: 'var(--text-dark)'
         }}
       >
-        {/* Top Gold Accent Line */}
-        <div style={{ height: '2px', background: 'var(--gold)', width: '100%', flexShrink: 0 }} />
-
-        {/* Header Bar: Clean & Minimal */}
+        {/* Subtle Warm Gold Top Edge Glow */}
         <div style={{
-          padding: '14px 18px 12px 18px',
-          borderBottom: '1px solid var(--border-color)',
+          height: '2px',
+          width: '100%',
+          background: 'linear-gradient(90deg, transparent, var(--gold) 40%, var(--gold) 60%, transparent)'
+        }} />
+
+        {/* Modal Header */}
+        <div style={{
+          padding: '14px 20px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          backgroundColor: '#0d0d10',
-          flexShrink: 0
+          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+          backgroundColor: 'rgba(255, 255, 255, 0.015)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              display: 'inline-block',
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--gold)',
+              boxShadow: '0 0 8px var(--gold)'
+            }} />
             <span style={{
               fontSize: '10px',
               fontWeight: '700',
               color: 'var(--gold)',
-              background: 'rgba(188, 137, 97, 0.12)',
-              border: '1px solid rgba(188, 137, 97, 0.3)',
-              padding: '2px 8px',
-              borderRadius: '3px',
               fontFamily: 'Source Code Pro, monospace',
-              letterSpacing: '0.04em'
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase'
             }}>
-              BROKEX TRADING AIRDROP
-            </span>
-            <span style={{ fontSize: '11px', color: 'var(--text-grey)', fontFamily: 'Source Code Pro, monospace' }}>
-              • Starts Sep 5, 00:00 UTC
+              Trading Competition • Airdrop
             </span>
           </div>
 
@@ -146,7 +126,7 @@ export default function WelcomePromoModal() {
               border: 'none',
               color: 'var(--text-grey)',
               cursor: 'pointer',
-              fontSize: '16px',
+              fontSize: '15px',
               lineHeight: 1,
               padding: '4px',
               display: 'flex',
@@ -163,213 +143,170 @@ export default function WelcomePromoModal() {
         </div>
 
         {/* Hero Section */}
-        <div 
-          className="promo-hero-row"
-          style={{
-            padding: '18px 20px 16px 20px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            borderBottom: '1px solid var(--border-color)',
-            gap: '16px',
-            flexShrink: 0
-          }}
-        >
-          <div>
-            <h2 style={{
-              margin: 0,
-              fontSize: '21px',
-              fontWeight: '800',
-              color: 'var(--text-dark)',
-              letterSpacing: '-0.02em',
-              lineHeight: '1.25'
-            }}>
-              Trading Campaign: <span style={{ color: 'var(--gold)' }}>$250 Prize Pool</span>
-            </h2>
-            <p style={{
-              margin: '6px 0 0 0',
-              fontSize: '12px',
-              color: 'var(--text-grey)',
-              lineHeight: '1.45'
-            }}>
-              Trade on Brokex, hold qualifying positions, and win up to $250 USDC across <strong>25 winners</strong> (Random Draw & Leaderboard rankings).
-            </p>
+        <div style={{ padding: '24px 24px 18px 24px', textAlign: 'center' }}>
+          
+          <div style={{
+            fontSize: '11px',
+            color: 'var(--text-grey)',
+            fontFamily: 'Source Code Pro, monospace',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            marginBottom: '6px'
+          }}>
+            Prize Pool
           </div>
 
-          {/* Desktop Summary Badge */}
-          <div 
-            className="promo-reward-card-desktop"
-            style={{
-              background: 'rgba(255, 255, 255, 0.02)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '6px',
-              padding: '8px 14px',
-              textAlign: 'right',
-              flexShrink: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center'
-            }}
-          >
-            <div style={{ fontSize: '9px', color: 'var(--text-grey)', textTransform: 'uppercase', fontWeight: '600' }}>Pool</div>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', fontFamily: 'Source Code Pro, monospace', color: 'var(--gold)', lineHeight: '1.2' }}>
-              $250
-            </div>
-            <div style={{ fontSize: '9px', color: 'var(--text-grey)', fontFamily: 'Source Code Pro, monospace' }}>25 Winners</div>
+          <div style={{
+            fontSize: '40px',
+            fontWeight: '900',
+            fontFamily: 'Source Code Pro, monospace',
+            color: 'var(--gold)',
+            lineHeight: '1',
+            letterSpacing: '-0.03em',
+            textShadow: '0 0 25px rgba(188, 137, 97, 0.3)'
+          }}>
+            $250 USDC
           </div>
+
+          <div style={{
+            fontSize: '15px',
+            fontWeight: '700',
+            color: 'var(--text-dark)',
+            marginTop: '10px',
+            letterSpacing: '-0.01em'
+          }}>
+            25 Winners • Official Trading Campaign
+          </div>
+
+          <p style={{
+            margin: '8px auto 0 auto',
+            maxWidth: '360px',
+            fontSize: '12px',
+            color: 'var(--text-grey)',
+            lineHeight: '1.5'
+          }}>
+            Starts September 5, 2026. Trade on Brokex, hold your position for 1+ hour, and qualify for random draws and performance rewards.
+          </p>
         </div>
 
-        {/* Requirements & Criteria (3-Step Cards) */}
-        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        {/* Clean Unencapsulated Key Metrics Table (Institutional Style) */}
+        <div style={{
+          margin: '0 20px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+          padding: '4px 0',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
           
-          <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-dark)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            How to Qualify
-          </div>
-
-          <div className="promo-grid-steps" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-            
-            {/* Step 1 */}
-            <div style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.02)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '6px',
-              padding: '10px 12px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '4px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '10.5px', fontWeight: '700', color: 'var(--gold)', fontFamily: 'Source Code Pro, monospace' }}>01</span>
-                <span style={{ fontSize: '9px', color: 'var(--text-grey)' }}>Volume</span>
-              </div>
-              <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-dark)' }}>
-                ≥ $250 Open Interest
-              </div>
-              <div style={{ fontSize: '10.5px', color: 'var(--text-grey)', lineHeight: '1.3' }}>
-                Cumulative OI (e.g. $25 margin with 10× leverage).
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.02)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '6px',
-              padding: '10px 12px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '4px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '10.5px', fontWeight: '700', color: 'var(--gold)', fontFamily: 'Source Code Pro, monospace' }}>02</span>
-                <span style={{ fontSize: '9px', color: 'var(--text-grey)' }}>Duration</span>
-              </div>
-              <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-dark)' }}>
-                ≥ 1 Hour Held
-              </div>
-              <div style={{ fontSize: '10.5px', color: 'var(--text-grey)', lineHeight: '1.3' }}>
-                Every qualifying position must be held for 1+ hour.
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.02)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '6px',
-              padding: '10px 12px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '4px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '10.5px', fontWeight: '700', color: 'var(--gold)', fontFamily: 'Source Code Pro, monospace' }}>03</span>
-                <span style={{ fontSize: '9px', color: 'var(--text-grey)' }}>Form & Social</span>
-              </div>
-              <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-dark)' }}>
-                Follow & Submit Form
-              </div>
-              <div style={{ fontSize: '10.5px', color: 'var(--text-grey)', lineHeight: '1.3' }}>
-                Follow @brokexfi, post on X and submit your wallet.
-              </div>
-            </div>
-
-          </div>
-
-          {/* Key Distribution Overview */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.015)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '6px',
-            padding: '10px 14px',
+          <div className="promo-row-hover" style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            fontSize: '11px',
-            flexWrap: 'wrap',
-            gap: '8px'
+            padding: '8px 6px',
+            borderRadius: '4px',
+            fontSize: '11.5px',
+            transition: 'background 0.15s'
           }}>
-            <div>
-              <span style={{ color: 'var(--text-dark)', fontWeight: '600' }}>20 Draw Winners ($8 each)</span>
-              <span style={{ color: 'var(--text-grey)' }}> • </span>
-              <span style={{ color: 'var(--gold)', fontWeight: '600' }}>5 Leaderboard Winners ($18 each)</span>
-            </div>
-            <div style={{ color: 'var(--color-blue)', fontFamily: 'Source Code Pro, monospace', fontSize: '10.5px' }}>
-              Capped at 400 wallets
-            </div>
+            <span style={{ color: 'var(--text-grey)' }}>Qualification</span>
+            <span style={{ fontWeight: '600', color: 'var(--text-dark)', fontFamily: 'Source Code Pro, monospace' }}>
+              ≥ $250 OI <span style={{ color: 'var(--text-grey)', fontWeight: 'normal' }}>(e.g. $25 × 10x)</span>
+            </span>
           </div>
 
-          {/* Action Buttons */}
-          <div className="promo-footer-btns" style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
-            <button
-              onClick={handleViewRules}
-              className="promo-btn-primary"
-              style={{
-                flex: 1.2,
-                backgroundColor: 'var(--gold)',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '10px 16px',
-                fontSize: '12.5px',
-                fontWeight: '700',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                boxShadow: '0 2px 10px rgba(188, 137, 97, 0.3)'
-              }}
-            >
-              <span>View Full Campaign Rules (/airdrop)</span>
-              <span>↗</span>
-            </button>
+          <div className="promo-row-hover" style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '8px 6px',
+            borderRadius: '4px',
+            fontSize: '11.5px',
+            transition: 'background 0.15s'
+          }}>
+            <span style={{ color: 'var(--text-grey)' }}>Holding Time</span>
+            <span style={{ fontWeight: '600', color: 'var(--text-dark)', fontFamily: 'Source Code Pro, monospace' }}>
+              ≥ 1 Full Hour
+            </span>
+          </div>
 
-            <button
-              onClick={handleClose}
-              className="promo-btn-secondary"
-              style={{
-                flex: 0.8,
-                backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                color: 'var(--text-grey)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '6px',
-                padding: '10px 14px',
-                fontSize: '12px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              Start Trading
-            </button>
+          <div className="promo-row-hover" style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '8px 6px',
+            borderRadius: '4px',
+            fontSize: '11.5px',
+            transition: 'background 0.15s'
+          }}>
+            <span style={{ color: 'var(--text-grey)' }}>Reward Split</span>
+            <span style={{ fontWeight: '600', color: 'var(--gold)', fontFamily: 'Source Code Pro, monospace' }}>
+              20 Draw ($8) + 5 Ranked ($18)
+            </span>
+          </div>
+
+          <div className="promo-row-hover" style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '8px 6px',
+            borderRadius: '4px',
+            fontSize: '11.5px',
+            transition: 'background 0.15s'
+          }}>
+            <span style={{ color: 'var(--text-grey)' }}>Participant Cap</span>
+            <span style={{ fontWeight: '600', color: 'var(--color-blue)', fontFamily: 'Source Code Pro, monospace' }}>
+              400 Verified Wallets
+            </span>
           </div>
 
         </div>
+
+        {/* Modal Footer Actions */}
+        <div style={{ padding: '20px 24px 22px 24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          
+          <button
+            onClick={handleViewRules}
+            className="promo-cta-btn"
+            style={{
+              width: '100%',
+              backgroundColor: 'var(--gold)',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '7px',
+              padding: '11px 18px',
+              fontSize: '13px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              boxShadow: '0 2px 12px rgba(188, 137, 97, 0.35)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <span>View Full Rules & Join Airdrop</span>
+            <span>↗</span>
+          </button>
+
+          <button
+            onClick={handleClose}
+            className="promo-ghost-btn"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-grey)',
+              fontSize: '11.5px',
+              cursor: 'pointer',
+              padding: '4px',
+              transition: 'color 0.15s ease'
+            }}
+          >
+            Continue to Terminal
+          </button>
+
+        </div>
+
       </div>
     </div>
   );
