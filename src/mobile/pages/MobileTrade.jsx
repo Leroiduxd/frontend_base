@@ -466,8 +466,8 @@ export default function MobileTrade() {
         initialTab={posManagerTab}
       />
 
-      {/* Welcome Offer Promo Modal (temporarily disabled) */}
-      {/* <WelcomePromoModal onReferNow={() => handleTabChange('portfolio')} /> */}
+      {/* Welcome Offer Promo Modal (Airdrop Campaign) */}
+      <WelcomePromoModal />
     </MobileLayout>
   );
 }

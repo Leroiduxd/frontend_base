@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 
-export default function WelcomePromoModal({ onReferNow }) {
+export default function WelcomePromoModal() {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Show smoothly on visit
     const timer = setTimeout(() => {
       setIsOpen(true);
-    }, 400);
+    }, 450);
     return () => clearTimeout(timer);
   }, []);
 
@@ -18,11 +20,9 @@ export default function WelcomePromoModal({ onReferNow }) {
     setIsOpen(false);
   };
 
-  const handleActionRefer = () => {
+  const handleViewRules = () => {
     setIsOpen(false);
-    if (onReferNow) {
-      onReferNow();
-    }
+    navigate('/airdrop');
   };
 
   const modalContent = (
@@ -52,10 +52,15 @@ export default function WelcomePromoModal({ onReferNow }) {
         }
         .promo-btn-primary:hover {
           opacity: 0.92;
+          transform: translateY(-1px);
+        }
+        .promo-btn-primary:active {
+          transform: translateY(0);
         }
         .promo-btn-secondary:hover {
           background-color: rgba(255, 255, 255, 0.08) !important;
           border-color: var(--gold) !important;
+          color: var(--text-dark) !important;
         }
         .promo-scrollable::-webkit-scrollbar {
           display: none;
@@ -77,14 +82,8 @@ export default function WelcomePromoModal({ onReferNow }) {
             align-items: stretch !important;
             gap: 0 !important;
           }
-          .promo-booster-row {
+          .promo-footer-btns {
             flex-direction: column !important;
-            align-items: stretch !important;
-            gap: 10px !important;
-          }
-          .promo-booster-btn {
-            width: 100% !important;
-            text-align: center !important;
           }
         }
       `}</style>
@@ -101,19 +100,19 @@ export default function WelcomePromoModal({ onReferNow }) {
           backgroundColor: '#0a0a0c',
           border: '1px solid var(--border-color)',
           borderRadius: '10px',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(188, 137, 97, 0.08)',
+          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(188, 137, 97, 0.1)',
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
           color: 'var(--text-dark)'
         }}
       >
-        {/* Subtle Accent Top Line */}
+        {/* Top Gold Accent Line */}
         <div style={{ height: '2px', background: 'var(--gold)', width: '100%', flexShrink: 0 }} />
 
         {/* Header Bar: Clean & Minimal */}
         <div style={{
-          padding: '14px 16px 12px 16px',
+          padding: '14px 18px 12px 18px',
           borderBottom: '1px solid var(--border-color)',
           display: 'flex',
           justifyContent: 'space-between',
@@ -127,16 +126,16 @@ export default function WelcomePromoModal({ onReferNow }) {
               fontWeight: '700',
               color: 'var(--gold)',
               background: 'rgba(188, 137, 97, 0.12)',
-              border: '1px solid rgba(188, 137, 97, 0.25)',
-              padding: '2px 7px',
+              border: '1px solid rgba(188, 137, 97, 0.3)',
+              padding: '2px 8px',
               borderRadius: '3px',
               fontFamily: 'Source Code Pro, monospace',
               letterSpacing: '0.04em'
             }}>
-              BROKEX REWARD
+              BROKEX TRADING AIRDROP
             </span>
             <span style={{ fontSize: '11px', color: 'var(--text-grey)', fontFamily: 'Source Code Pro, monospace' }}>
-              • First 50 Wallets
+              • Starts Sep 5, 00:00 UTC
             </span>
           </div>
 
@@ -163,11 +162,11 @@ export default function WelcomePromoModal({ onReferNow }) {
           </button>
         </div>
 
-        {/* Hero Banner: Clean Typography & Exact Payout */}
+        {/* Hero Section */}
         <div 
           className="promo-hero-row"
           style={{
-            padding: '18px 18px 16px 18px',
+            padding: '18px 20px 16px 20px',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'flex-start',
@@ -179,13 +178,13 @@ export default function WelcomePromoModal({ onReferNow }) {
           <div>
             <h2 style={{
               margin: 0,
-              fontSize: '20px',
-              fontWeight: '700',
+              fontSize: '21px',
+              fontWeight: '800',
               color: 'var(--text-dark)',
               letterSpacing: '-0.02em',
               lineHeight: '1.25'
             }}>
-              First Trade Bonus: <span style={{ color: 'var(--gold)' }}>$5.00 USDC</span>
+              Trading Campaign: <span style={{ color: 'var(--gold)' }}>$250 Prize Pool</span>
             </h2>
             <p style={{
               margin: '6px 0 0 0',
@@ -193,11 +192,11 @@ export default function WelcomePromoModal({ onReferNow }) {
               color: 'var(--text-grey)',
               lineHeight: '1.45'
             }}>
-              Open your first leveraged position on Base and receive $5.00 directly credited to your wallet.
+              Trade on Brokex, hold qualifying positions, and win up to $250 USDC across <strong>25 winners</strong> (Random Draw & Leaderboard rankings).
             </p>
           </div>
 
-          {/* Reward Box (Visible on Desktop / Hidden on Mobile to save space) */}
+          {/* Desktop Summary Badge */}
           <div 
             className="promo-reward-card-desktop"
             style={{
@@ -212,19 +211,19 @@ export default function WelcomePromoModal({ onReferNow }) {
               justifyContent: 'center'
             }}
           >
-            <div style={{ fontSize: '9px', color: 'var(--text-grey)', textTransform: 'uppercase', fontWeight: '600' }}>Reward</div>
+            <div style={{ fontSize: '9px', color: 'var(--text-grey)', textTransform: 'uppercase', fontWeight: '600' }}>Pool</div>
             <div style={{ fontSize: '20px', fontWeight: 'bold', fontFamily: 'Source Code Pro, monospace', color: 'var(--gold)', lineHeight: '1.2' }}>
-              $5.00
+              $250
             </div>
-            <div style={{ fontSize: '9px', color: 'var(--text-grey)', fontFamily: 'Source Code Pro, monospace' }}>USDC on Base</div>
+            <div style={{ fontSize: '9px', color: 'var(--text-grey)', fontFamily: 'Source Code Pro, monospace' }}>25 Winners</div>
           </div>
         </div>
 
-        {/* Requirements & Criteria */}
-        <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        {/* Requirements & Criteria (3-Step Cards) */}
+        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           
           <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-dark)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            Eligibility Requirements
+            How to Qualify
           </div>
 
           <div className="promo-grid-steps" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
@@ -241,13 +240,13 @@ export default function WelcomePromoModal({ onReferNow }) {
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '10.5px', fontWeight: '700', color: 'var(--gold)', fontFamily: 'Source Code Pro, monospace' }}>01</span>
-                <span style={{ fontSize: '9px', color: 'var(--text-grey)' }}>Margin</span>
+                <span style={{ fontSize: '9px', color: 'var(--text-grey)' }}>Volume</span>
               </div>
               <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-dark)' }}>
-                ≥ $5.00 Collateral
+                ≥ $250 Open Interest
               </div>
               <div style={{ fontSize: '10.5px', color: 'var(--text-grey)', lineHeight: '1.3' }}>
-                Open your first trade with minimum $5 margin.
+                Cumulative OI (e.g. $25 margin with 10× leverage).
               </div>
             </div>
 
@@ -266,10 +265,10 @@ export default function WelcomePromoModal({ onReferNow }) {
                 <span style={{ fontSize: '9px', color: 'var(--text-grey)' }}>Duration</span>
               </div>
               <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-dark)' }}>
-                &gt; 6 Hours Active
+                ≥ 1 Hour Held
               </div>
               <div style={{ fontSize: '10.5px', color: 'var(--text-grey)', lineHeight: '1.3' }}>
-                Keep your position active for over 6 hours.
+                Every qualifying position must be held for 1+ hour.
               </div>
             </div>
 
@@ -285,87 +284,88 @@ export default function WelcomePromoModal({ onReferNow }) {
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '10.5px', fontWeight: '700', color: 'var(--gold)', fontFamily: 'Source Code Pro, monospace' }}>03</span>
-                <span style={{ fontSize: '9px', color: 'var(--text-grey)' }}>Distribution</span>
+                <span style={{ fontSize: '9px', color: 'var(--text-grey)' }}>Form & Social</span>
               </div>
               <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-dark)' }}>
-                $5.00 Direct USDC
+                Follow & Submit Form
               </div>
               <div style={{ fontSize: '10.5px', color: 'var(--text-grey)', lineHeight: '1.3' }}>
-                Reward credited for the first 50 unique traders.
+                Follow @brokexfi, post on X and submit your wallet.
               </div>
             </div>
 
           </div>
 
-          {/* Referral Booster Row */}
-          <div 
-            className="promo-booster-row"
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.015)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '6px',
-              padding: '12px 14px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px'
-            }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <div style={{ fontSize: '11.5px', fontWeight: '600', color: 'var(--text-dark)' }}>
-                Boost your priority by referring traders
-              </div>
-              <div style={{ fontSize: '10px', color: 'var(--text-grey)', lineHeight: '1.3' }}>
-                Earn 20% rebate on every trade. <span style={{ color: 'var(--gold)' }}>1+ trade required on your wallet to be eligible.</span>
-              </div>
+          {/* Key Distribution Overview */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.015)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '6px',
+            padding: '10px 14px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '11px',
+            flexWrap: 'wrap',
+            gap: '8px'
+          }}>
+            <div>
+              <span style={{ color: 'var(--text-dark)', fontWeight: '600' }}>20 Draw Winners ($8 each)</span>
+              <span style={{ color: 'var(--text-grey)' }}> • </span>
+              <span style={{ color: 'var(--gold)', fontWeight: '600' }}>5 Leaderboard Winners ($18 each)</span>
             </div>
-
-            <button
-              onClick={handleActionRefer}
-              className="promo-btn-secondary promo-booster-btn"
-              style={{
-                backgroundColor: 'transparent',
-                color: 'var(--gold)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '4px',
-                padding: '6px 14px',
-                fontSize: '11.5px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.15s',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              Refer Now ↗
-            </button>
+            <div style={{ color: 'var(--color-blue)', fontFamily: 'Source Code Pro, monospace', fontSize: '10.5px' }}>
+              Capped at 400 wallets
+            </div>
           </div>
 
-          {/* Action Button */}
-          <div style={{ display: 'flex', gap: '10px', marginTop: '2px' }}>
+          {/* Action Buttons */}
+          <div className="promo-footer-btns" style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
             <button
-              onClick={handleClose}
+              onClick={handleViewRules}
               className="promo-btn-primary"
               style={{
-                flex: 1,
+                flex: 1.2,
                 backgroundColor: 'var(--gold)',
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '6px',
                 padding: '10px 16px',
-                fontSize: '13px',
-                fontWeight: '600',
+                fontSize: '12.5px',
+                fontWeight: '700',
                 cursor: 'pointer',
-                transition: 'opacity 0.2s',
+                transition: 'all 0.15s ease',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 2px 10px rgba(188, 137, 97, 0.25)'
+                gap: '6px',
+                boxShadow: '0 2px 10px rgba(188, 137, 97, 0.3)'
               }}
             >
-              Start Trading Now
+              <span>View Full Campaign Rules (/airdrop)</span>
+              <span>↗</span>
+            </button>
+
+            <button
+              onClick={handleClose}
+              className="promo-btn-secondary"
+              style={{
+                flex: 0.8,
+                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                color: 'var(--text-grey)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '6px',
+                padding: '10px 14px',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              Start Trading
             </button>
           </div>
 
