@@ -7,6 +7,7 @@ import Sidebar from '../components/Sidebar';
 import useIsMobile from '../hooks/useIsMobile';
 import MobileLayout from '../mobile/components/MobileLayout';
 import MobileTrade from '../mobile/pages/MobileTrade';
+import AsciiStarsBackground from '../components/AsciiStarsBackground';
 import { api } from '../services/api';
 import { useMarketData } from '../context/MarketDataContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -760,16 +761,22 @@ export default function Referrals() {
           borderRadius: '8px',
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          position: 'relative'
         }}
       >
+        {/* Animated Golden ASCII Stars Background in empty space excluding sidebar */}
+        <AsciiStarsBackground opacity={0.4} count={220} speed={0.7} />
+
         <div 
           className="ref-page-scroll"
           style={{ 
             flex: 1, 
             height: '100%',
             overflowY: 'auto',
-            padding: '20px 20px 20px 20px'
+            padding: '20px 20px 20px 20px',
+            position: 'relative',
+            zIndex: 1
           }}
         >
           {content}

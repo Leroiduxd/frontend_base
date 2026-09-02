@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import useIsMobile from '../hooks/useIsMobile';
 import MobileLayout from '../mobile/components/MobileLayout';
+import AsciiStarsBackground from '../components/AsciiStarsBackground';
 
 const GOOGLE_FORM_URL = 'https://forms.gle/ynmsAuniQTG4RuzX7';
 
@@ -820,16 +821,22 @@ export default function Airdrop() {
           borderRadius: '8px',
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          position: 'relative'
         }}
       >
+        {/* Animated Golden ASCII Stars Background in empty space excluding sidebar */}
+        <AsciiStarsBackground opacity={0.4} count={220} speed={0.7} />
+
         <div 
           className="airdrop-page-scroll"
           style={{ 
             flex: 1, 
             height: '100%',
             overflowY: 'auto',
-            padding: '20px 20px 20px 20px'
+            padding: '20px 20px 20px 20px',
+            position: 'relative',
+            zIndex: 1
           }}
         >
           {content}
