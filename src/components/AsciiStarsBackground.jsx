@@ -3,14 +3,14 @@ import React, { useEffect, useRef } from 'react';
 /**
  * Premium Golden ASCII Terminal/Code Ambient Canvas Background
  * Pure computing and mathematical keyboard symbols: +, -, /, %, #, @, ", ', =, ~, &, |, <, >, $, etc.
- * Zero stars. Controlled count (200), increased size (13-17px), balanced golden opacity (0.25 - 0.65).
+ * Zero stars. Reduced density (120), discreet size (10-13px), soft reduced opacity (0.10 - 0.35).
  */
 export default function AsciiStarsBackground({
-  count = 200,
-  speed = 0.6,
-  accentColor = '#F5C869', // Bright rich gold
-  baseColor = '#E5A93C',   // Warm golden bronze
-  dimColor = '#BC8961'     // Signature Brokex gold
+  count = 120,
+  speed = 0.5,
+  accentColor = '#E5A93C', // Warm gold
+  baseColor = '#BC8961',   // Brokex signature gold
+  dimColor = '#8A6746'     // Subtle muted bronze
 }) {
   const canvasRef = useRef(null);
 
@@ -54,8 +54,8 @@ export default function AsciiStarsBackground({
       const currentHeight = height || window.innerHeight;
 
       for (let i = 0; i < count; i++) {
-        const isAccent = Math.random() < 0.28;
-        const isMedium = Math.random() < 0.52;
+        const isAccent = Math.random() < 0.25;
+        const isMedium = Math.random() < 0.55;
         
         points.push({
           x: Math.random() * currentWidth,
@@ -63,15 +63,15 @@ export default function AsciiStarsBackground({
           z: Math.random() * 0.75 + 0.25, // depth multiplier
           char: CHARS[Math.floor(Math.random() * CHARS.length)],
           isAccent,
-          // Slightly enlarged size: 13px to 17px
-          size: isAccent ? Math.floor(Math.random() * 3 + 15) : Math.floor(Math.random() * 3 + 13),
+          // Restored small sizes: 10px to 13px
+          size: isAccent ? Math.floor(Math.random() * 2 + 12) : Math.floor(Math.random() * 2 + 10),
           color: isAccent ? accentColor : isMedium ? baseColor : dimColor,
-          // Slightly increased opacity: base between 0.32 and 0.55
-          baseAlpha: isAccent ? (Math.random() * 0.12 + 0.45) : (Math.random() * 0.10 + 0.32),
+          // Reduced soft opacity: base between 0.14 and 0.28
+          baseAlpha: isAccent ? (Math.random() * 0.08 + 0.22) : (Math.random() * 0.06 + 0.14),
           twinkleSpeed: Math.random() * 1.5 + 0.6,
           phase: Math.random() * Math.PI * 2,
-          vx: (Math.random() - 0.5) * 0.12,
-          vy: (Math.random() - 0.5) * 0.12
+          vx: (Math.random() - 0.5) * 0.10,
+          vy: (Math.random() - 0.5) * 0.10
         });
       }
     };
@@ -105,8 +105,8 @@ export default function AsciiStarsBackground({
       mouse.x += (mouse.targetX - mouse.x) * 0.04;
       mouse.y += (mouse.targetY - mouse.y) * 0.04;
 
-      const mouseShiftX = (mouse.x - 0.5) * 28;
-      const mouseShiftY = (mouse.y - 0.5) * 28;
+      const mouseShiftX = (mouse.x - 0.5) * 25;
+      const mouseShiftY = (mouse.y - 0.5) * 25;
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -118,8 +118,8 @@ export default function AsciiStarsBackground({
         const pt = points[i];
 
         // Drift
-        pt.x += (pt.vx + (mouse.x - 0.5) * 0.06) * pt.z;
-        pt.y += (pt.vy + (mouse.y - 0.5) * 0.06) * pt.z;
+        pt.x += (pt.vx + (mouse.x - 0.5) * 0.05) * pt.z;
+        pt.y += (pt.vy + (mouse.y - 0.5) * 0.05) * pt.z;
 
         // Wrap edges
         if (pt.x < -20) pt.x = width + 20;
@@ -131,9 +131,9 @@ export default function AsciiStarsBackground({
         const drawX = pt.x + mouseShiftX * pt.z;
         const drawY = pt.y + mouseShiftY * pt.z;
 
-        // Clean breathing twinkle: range 0.24 to 0.65
+        // Reduced soft breathing twinkle: range 0.10 to 0.35
         const twinkle = Math.sin(tSec * pt.twinkleSpeed + pt.phase);
-        const alpha = Math.max(0.24, Math.min(0.65, pt.baseAlpha + twinkle * 0.10));
+        const alpha = Math.max(0.10, Math.min(0.35, pt.baseAlpha + twinkle * 0.07));
 
         ctx.font = `${pt.size}px "Source Code Pro", "Courier New", monospace`;
         ctx.fillStyle = pt.color;
