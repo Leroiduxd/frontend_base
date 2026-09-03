@@ -2,15 +2,15 @@ import React, { useEffect, useRef } from 'react';
 
 /**
  * Premium Golden ASCII Ambient Canvas Background
- * Micro geometric terminal motif (crosshairs, micro-dots, subtle matrix glyphs)
- * Discreet, small (7-9px), soft transparency (0.12 - 0.30), smooth mouse parallax
+ * Micro geometric terminal motif (crosshairs, data dots, subtle matrix glyphs)
+ * Enhanced size (10-15px), reinforced golden colors, clean visibility, smooth mouse parallax
  */
 export default function AsciiStarsBackground({
-  count = 260,
-  speed = 0.6,
-  accentColor = '#C99355', // Soft warm gold
-  baseColor = '#BC8961',   // Brokex signature gold
-  dimColor = '#7A5B3D'     // Subtle muted bronze
+  count = 280,
+  speed = 0.7,
+  accentColor = '#FFD580', // Luminous vibrant gold
+  baseColor = '#E5A93C',   // Rich warm gold
+  dimColor = '#BC8961'     // Signature Brokex gold
 }) {
   const canvasRef = useRef(null);
 
@@ -39,8 +39,8 @@ export default function AsciiStarsBackground({
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-    // Geometric micro-motif: crosshairs, micro-dots, subtle geometric markers
-    const CHARS = ['+', '·', '×', '°', '▫', '·', ':', '·'];
+    // Geometric micro-motif: crosshairs, data dots, subtle geometric markers
+    const CHARS = ['+', '·', '×', '°', '▫', '·', ':', '•', '+'];
 
     let points = [];
 
@@ -50,23 +50,24 @@ export default function AsciiStarsBackground({
       const currentHeight = height || window.innerHeight;
 
       for (let i = 0; i < count; i++) {
-        const isAccent = Math.random() < 0.20; // 20% accent
-        const isMedium = Math.random() < 0.50; // 50% medium
+        const isAccent = Math.random() < 0.28; // 28% accent
+        const isMedium = Math.random() < 0.52; // 52% medium
         
         points.push({
           x: Math.random() * currentWidth,
           y: Math.random() * currentHeight,
-          z: Math.random() * 0.75 + 0.25, // depth
+          z: Math.random() * 0.8 + 0.2, // depth
           char: CHARS[Math.floor(Math.random() * CHARS.length)],
-          // Small discreet sizes: 6.5px to 9px
-          size: Math.floor(Math.random() * 3 + 7),
+          isAccent,
+          // Reinforced visible sizes: 10px to 15px
+          size: isAccent ? Math.floor(Math.random() * 4 + 12) : Math.floor(Math.random() * 3 + 10),
           color: isAccent ? accentColor : isMedium ? baseColor : dimColor,
-          // Soft transparency: base between 0.10 and 0.22
-          baseAlpha: isAccent ? (Math.random() * 0.08 + 0.18) : (Math.random() * 0.08 + 0.10),
-          twinkleSpeed: Math.random() * 1.6 + 0.6,
+          // Reinforced visible transparency: base between 0.35 and 0.65
+          baseAlpha: isAccent ? (Math.random() * 0.15 + 0.55) : (Math.random() * 0.15 + 0.35),
+          twinkleSpeed: Math.random() * 1.8 + 0.8,
           phase: Math.random() * Math.PI * 2,
-          vx: (Math.random() - 0.5) * 0.10,
-          vy: (Math.random() - 0.5) * 0.10
+          vx: (Math.random() - 0.5) * 0.14,
+          vy: (Math.random() - 0.5) * 0.14
         });
       }
     };
@@ -97,11 +98,11 @@ export default function AsciiStarsBackground({
       ctx.clearRect(0, 0, width, height);
 
       // Smooth mouse lerp
-      mouse.x += (mouse.targetX - mouse.x) * 0.04;
-      mouse.y += (mouse.targetY - mouse.y) * 0.04;
+      mouse.x += (mouse.targetX - mouse.x) * 0.05;
+      mouse.y += (mouse.targetY - mouse.y) * 0.05;
 
-      const mouseShiftX = (mouse.x - 0.5) * 30;
-      const mouseShiftY = (mouse.y - 0.5) * 30;
+      const mouseShiftX = (mouse.x - 0.5) * 35;
+      const mouseShiftY = (mouse.y - 0.5) * 35;
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -112,31 +113,40 @@ export default function AsciiStarsBackground({
         const pt = points[i];
 
         // Drift
-        pt.x += (pt.vx + (mouse.x - 0.5) * 0.06) * pt.z;
-        pt.y += (pt.vy + (mouse.y - 0.5) * 0.06) * pt.z;
+        pt.x += (pt.vx + (mouse.x - 0.5) * 0.08) * pt.z;
+        pt.y += (pt.vy + (mouse.y - 0.5) * 0.08) * pt.z;
 
         // Wrap edges
-        if (pt.x < -15) pt.x = width + 15;
-        if (pt.x > width + 15) pt.x = -15;
-        if (pt.y < -15) pt.y = height + 15;
-        if (pt.y > height + 15) pt.y = -15;
+        if (pt.x < -20) pt.x = width + 20;
+        if (pt.x > width + 20) pt.x = -20;
+        if (pt.y < -20) pt.y = height + 20;
+        if (pt.y > height + 20) pt.y = -20;
 
         // Parallax position
         const drawX = pt.x + mouseShiftX * pt.z;
         const drawY = pt.y + mouseShiftY * pt.z;
 
-        // Subtle organic breathing twinkle (never too bright, capped around 0.32 max)
+        // Clean breathing twinkle
         const twinkle = Math.sin(tSec * pt.twinkleSpeed + pt.phase);
-        const alpha = Math.max(0.08, Math.min(0.32, pt.baseAlpha + twinkle * 0.08));
+        const alpha = Math.max(0.22, Math.min(0.82, pt.baseAlpha + twinkle * 0.15));
 
         ctx.font = `${pt.size}px "Source Code Pro", "Courier New", monospace`;
         ctx.fillStyle = pt.color;
         ctx.globalAlpha = alpha;
 
+        // Subtle glow on accent points
+        if (pt.isAccent) {
+          ctx.shadowColor = accentColor;
+          ctx.shadowBlur = 4;
+        } else {
+          ctx.shadowBlur = 0;
+        }
+
         ctx.fillText(pt.char, drawX, drawY);
       }
 
       ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
 
       animationFrameId = requestAnimationFrame(render);
     };
