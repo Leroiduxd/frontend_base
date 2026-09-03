@@ -3,14 +3,14 @@ import React, { useEffect, useRef } from 'react';
 /**
  * Premium Golden ASCII Terminal/Code Ambient Canvas Background
  * Pure computing and mathematical keyboard symbols: +, -, /, %, #, @, ", ', =, ~, &, |, <, >, $, etc.
- * Zero stars. Balanced ambient opacity (0.16 - 0.42), crisp monospace characters, smooth mouse parallax.
+ * Zero stars. Controlled count (200), increased size (13-17px), balanced golden opacity (0.25 - 0.65).
  */
 export default function AsciiStarsBackground({
-  count = 220,
+  count = 200,
   speed = 0.6,
-  accentColor = '#E5A93C', // Warm gold
-  baseColor = '#BC8961',   // Brokex gold
-  dimColor = '#8A6746'     // Muted bronze
+  accentColor = '#F5C869', // Bright rich gold
+  baseColor = '#E5A93C',   // Warm golden bronze
+  dimColor = '#BC8961'     // Signature Brokex gold
 }) {
   const canvasRef = useRef(null);
 
@@ -54,8 +54,8 @@ export default function AsciiStarsBackground({
       const currentHeight = height || window.innerHeight;
 
       for (let i = 0; i < count; i++) {
-        const isAccent = Math.random() < 0.25;
-        const isMedium = Math.random() < 0.55;
+        const isAccent = Math.random() < 0.28;
+        const isMedium = Math.random() < 0.52;
         
         points.push({
           x: Math.random() * currentWidth,
@@ -63,11 +63,11 @@ export default function AsciiStarsBackground({
           z: Math.random() * 0.75 + 0.25, // depth multiplier
           char: CHARS[Math.floor(Math.random() * CHARS.length)],
           isAccent,
-          // Clean terminal monospace font sizes: 10px to 13px
-          size: isAccent ? Math.floor(Math.random() * 3 + 11) : Math.floor(Math.random() * 2 + 10),
+          // Slightly enlarged size: 13px to 17px
+          size: isAccent ? Math.floor(Math.random() * 3 + 15) : Math.floor(Math.random() * 3 + 13),
           color: isAccent ? accentColor : isMedium ? baseColor : dimColor,
-          // Balanced ambient transparency: base between 0.16 and 0.36
-          baseAlpha: isAccent ? (Math.random() * 0.10 + 0.28) : (Math.random() * 0.08 + 0.16),
+          // Slightly increased opacity: base between 0.32 and 0.55
+          baseAlpha: isAccent ? (Math.random() * 0.12 + 0.45) : (Math.random() * 0.10 + 0.32),
           twinkleSpeed: Math.random() * 1.5 + 0.6,
           phase: Math.random() * Math.PI * 2,
           vx: (Math.random() - 0.5) * 0.12,
@@ -131,9 +131,9 @@ export default function AsciiStarsBackground({
         const drawX = pt.x + mouseShiftX * pt.z;
         const drawY = pt.y + mouseShiftY * pt.z;
 
-        // Subtle gentle breathing twinkle
+        // Clean breathing twinkle: range 0.24 to 0.65
         const twinkle = Math.sin(tSec * pt.twinkleSpeed + pt.phase);
-        const alpha = Math.max(0.12, Math.min(0.44, pt.baseAlpha + twinkle * 0.08));
+        const alpha = Math.max(0.24, Math.min(0.65, pt.baseAlpha + twinkle * 0.10));
 
         ctx.font = `${pt.size}px "Source Code Pro", "Courier New", monospace`;
         ctx.fillStyle = pt.color;
