@@ -1,16 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 
 /**
- * Premium Golden ASCII Ambient Canvas Background
- * Micro geometric terminal motif (crosshairs, data dots, subtle matrix glyphs)
- * Enhanced size (10-15px), reinforced golden colors, clean visibility, smooth mouse parallax
+ * Premium Golden ASCII Terminal/Code Ambient Canvas Background
+ * Pure computing and mathematical keyboard symbols: +, -, /, %, #, @, ", ', =, ~, &, |, <, >, $, etc.
+ * Zero stars. Balanced ambient opacity (0.16 - 0.42), crisp monospace characters, smooth mouse parallax.
  */
 export default function AsciiStarsBackground({
-  count = 280,
-  speed = 0.7,
-  accentColor = '#FFD580', // Luminous vibrant gold
-  baseColor = '#E5A93C',   // Rich warm gold
-  dimColor = '#BC8961'     // Signature Brokex gold
+  count = 220,
+  speed = 0.6,
+  accentColor = '#E5A93C', // Warm gold
+  baseColor = '#BC8961',   // Brokex gold
+  dimColor = '#8A6746'     // Muted bronze
 }) {
   const canvasRef = useRef(null);
 
@@ -39,8 +39,12 @@ export default function AsciiStarsBackground({
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-    // Geometric micro-motif: crosshairs, data dots, subtle geometric markers
-    const CHARS = ['+', '·', '×', '°', '▫', '·', ':', '•', '+'];
+    // Pure computing & mathematical keyboard symbols — ZERO stars
+    const CHARS = [
+      '+', '-', '/', '%', '#', '@', '"', "'", '=', '~',
+      '&', '|', '<', '>', '^', '!', '?', '$', '{', '}',
+      '[', ']', ';', ':', '_'
+    ];
 
     let points = [];
 
@@ -50,24 +54,24 @@ export default function AsciiStarsBackground({
       const currentHeight = height || window.innerHeight;
 
       for (let i = 0; i < count; i++) {
-        const isAccent = Math.random() < 0.28; // 28% accent
-        const isMedium = Math.random() < 0.52; // 52% medium
+        const isAccent = Math.random() < 0.25;
+        const isMedium = Math.random() < 0.55;
         
         points.push({
           x: Math.random() * currentWidth,
           y: Math.random() * currentHeight,
-          z: Math.random() * 0.8 + 0.2, // depth
+          z: Math.random() * 0.75 + 0.25, // depth multiplier
           char: CHARS[Math.floor(Math.random() * CHARS.length)],
           isAccent,
-          // Reinforced visible sizes: 10px to 15px
-          size: isAccent ? Math.floor(Math.random() * 4 + 12) : Math.floor(Math.random() * 3 + 10),
+          // Clean terminal monospace font sizes: 10px to 13px
+          size: isAccent ? Math.floor(Math.random() * 3 + 11) : Math.floor(Math.random() * 2 + 10),
           color: isAccent ? accentColor : isMedium ? baseColor : dimColor,
-          // Reinforced visible transparency: base between 0.35 and 0.65
-          baseAlpha: isAccent ? (Math.random() * 0.15 + 0.55) : (Math.random() * 0.15 + 0.35),
-          twinkleSpeed: Math.random() * 1.8 + 0.8,
+          // Balanced ambient transparency: base between 0.16 and 0.36
+          baseAlpha: isAccent ? (Math.random() * 0.10 + 0.28) : (Math.random() * 0.08 + 0.16),
+          twinkleSpeed: Math.random() * 1.5 + 0.6,
           phase: Math.random() * Math.PI * 2,
-          vx: (Math.random() - 0.5) * 0.14,
-          vy: (Math.random() - 0.5) * 0.14
+          vx: (Math.random() - 0.5) * 0.12,
+          vy: (Math.random() - 0.5) * 0.12
         });
       }
     };
@@ -98,14 +102,15 @@ export default function AsciiStarsBackground({
       ctx.clearRect(0, 0, width, height);
 
       // Smooth mouse lerp
-      mouse.x += (mouse.targetX - mouse.x) * 0.05;
-      mouse.y += (mouse.targetY - mouse.y) * 0.05;
+      mouse.x += (mouse.targetX - mouse.x) * 0.04;
+      mouse.y += (mouse.targetY - mouse.y) * 0.04;
 
-      const mouseShiftX = (mouse.x - 0.5) * 35;
-      const mouseShiftY = (mouse.y - 0.5) * 35;
+      const mouseShiftX = (mouse.x - 0.5) * 28;
+      const mouseShiftY = (mouse.y - 0.5) * 28;
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
+      ctx.shadowBlur = 0; // Flat clean terminal aesthetic
 
       const tSec = (time / 1000) * speed;
 
@@ -113,8 +118,8 @@ export default function AsciiStarsBackground({
         const pt = points[i];
 
         // Drift
-        pt.x += (pt.vx + (mouse.x - 0.5) * 0.08) * pt.z;
-        pt.y += (pt.vy + (mouse.y - 0.5) * 0.08) * pt.z;
+        pt.x += (pt.vx + (mouse.x - 0.5) * 0.06) * pt.z;
+        pt.y += (pt.vy + (mouse.y - 0.5) * 0.06) * pt.z;
 
         // Wrap edges
         if (pt.x < -20) pt.x = width + 20;
@@ -126,27 +131,18 @@ export default function AsciiStarsBackground({
         const drawX = pt.x + mouseShiftX * pt.z;
         const drawY = pt.y + mouseShiftY * pt.z;
 
-        // Clean breathing twinkle
+        // Subtle gentle breathing twinkle
         const twinkle = Math.sin(tSec * pt.twinkleSpeed + pt.phase);
-        const alpha = Math.max(0.22, Math.min(0.82, pt.baseAlpha + twinkle * 0.15));
+        const alpha = Math.max(0.12, Math.min(0.44, pt.baseAlpha + twinkle * 0.08));
 
         ctx.font = `${pt.size}px "Source Code Pro", "Courier New", monospace`;
         ctx.fillStyle = pt.color;
         ctx.globalAlpha = alpha;
 
-        // Subtle glow on accent points
-        if (pt.isAccent) {
-          ctx.shadowColor = accentColor;
-          ctx.shadowBlur = 4;
-        } else {
-          ctx.shadowBlur = 0;
-        }
-
         ctx.fillText(pt.char, drawX, drawY);
       }
 
       ctx.globalAlpha = 1;
-      ctx.shadowBlur = 0;
 
       animationFrameId = requestAnimationFrame(render);
     };
